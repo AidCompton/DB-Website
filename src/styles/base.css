@@ -1,0 +1,284 @@
+/* ==========================================================================
+   Driver Bureau: tokens, reset, type, shared components
+   Everything is scoped under .db so the same stylesheet works as a normal
+   page and inside the Wix custom element's shadow root.
+   ========================================================================== */
+
+.db {
+  /* Palette */
+  --asphalt: #0d0f12;
+  --tarmac: #171a1f;
+  --concrete: #e3e2dc;
+  --signal: #ffc21a;
+  --brake: #ff4b2b;
+  --chalk: #edece8;
+
+  /* Type */
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  /* Layout */
+  --gutter: clamp(16px, 4.2vw, 64px);
+  --rail-space: 0px;
+  --header-h: 76px;
+  --maxw: 1440px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Derived from the animated `color`, so every section recolours for free */
+  --muted: color-mix(in srgb, currentColor 66%, transparent);
+  --faint: color-mix(in srgb, currentColor 40%, transparent);
+  --line: color-mix(in srgb, currentColor 16%, transparent);
+  --tint: color-mix(in srgb, currentColor 6%, transparent);
+  --focus: var(--signal);
+
+  /* Live theme colours, tweened by GSAP as sections scroll into view */
+  --bgc: #0d0f12;
+  --fgc: #edece8;
+
+  position: relative;
+  min-height: 100%;
+  background-color: var(--bgc);
+  color: var(--fgc);
+  font-family: var(--font-body);
+  font-size: clamp(16px, 0.35vw + 14.6px, 18px);
+  line-height: 1.55;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
+  overflow-x: clip;
+}
+
+.db[data-current-theme="light"],
+.db[data-current-theme="signal"] { --focus: var(--asphalt); }
+
+@media (min-width: 1200px) {
+  .db { --rail-space: 56px; }
+}
+
+/* ---------- reset (scoped) ---------- */
+.db *,
+.db *::before,
+.db *::after { box-sizing: border-box; }
+.db :where(h1, h2, h3, h4, p, ul, ol, dl, dd, figure, blockquote) { margin: 0; }
+.db :where(ul, ol) { padding: 0; list-style: none; }
+.db :where(a) { color: inherit; text-decoration: none; }
+.db :where(button) {
+  font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.db :where(img, svg, canvas) { display: block; max-width: 100%; }
+.db :where(mark) { background: none; color: inherit; }
+.db [hidden] { display: none !important; }
+.db ::selection { background: var(--signal); color: var(--asphalt); }
+
+.db :focus { outline: none; }
+.db :focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.db .sr-only {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.db .skip-link {
+  position: fixed; z-index: 200; left: 16px; top: 12px;
+  padding: 10px 16px; border-radius: 999px;
+  background: var(--signal); color: var(--asphalt);
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+  transform: translateY(-160%); transition: transform 0.3s var(--ease-out);
+}
+.db .skip-link:focus-visible { transform: none; }
+
+/* ---------- layout ---------- */
+.db .wrap {
+  width: 100%;
+  max-width: calc(var(--maxw) + var(--rail-space));
+  margin-inline: auto;
+  padding-inline: calc(var(--gutter) + var(--rail-space)) var(--gutter);
+}
+
+.db .section {
+  position: relative;
+  padding-block: clamp(96px, 14vh, 180px);
+}
+
+.db .section-head {
+  display: grid;
+  gap: clamp(20px, 2.4vw, 32px);
+  margin-bottom: clamp(48px, 7vw, 104px);
+  max-width: 1100px;
+}
+.db .section-head > div { display: grid; gap: clamp(20px, 2.4vw, 32px); }
+.db .section-head--split {
+  max-width: none;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  align-items: end;
+  gap: clamp(24px, 5vw, 96px);
+}
+@media (max-width: 899px) {
+  .db .section-head > div { display: grid; gap: clamp(20px, 2.4vw, 32px); }
+.db .section-head--split { grid-template-columns: 1fr; }
+}
+
+/* ---------- type ---------- */
+.db .h-display {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 5.6vw, 100px);
+  font-stretch: 112%;
+  font-weight: 760;
+  line-height: 0.94;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.db .h-large {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 3.6vw, 60px);
+  font-stretch: 108%;
+  font-weight: 720;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.db .lede {
+  font-size: clamp(18px, 0.6vw + 14px, 22px);
+  line-height: 1.45;
+  color: var(--muted);
+  max-width: 40ch;
+  text-wrap: pretty;
+}
+.db p { text-wrap: pretty; }
+
+.db .label,
+.db .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  font-stretch: 100%;
+  line-height: 1.3;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.db .label { color: var(--muted); }
+.db .label__line {
+  display: inline-block;
+  width: 28px; height: 2px;
+  background: currentColor;
+  background-image: linear-gradient(90deg, currentColor 0 60%, transparent 60% 100%);
+  background-size: 10px 2px;
+}
+.db .eyebrow__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--signal) 24%, transparent);
+}
+
+/* ---------- icons ---------- */
+.db .i-arrow {
+  width: 1.1em; height: 1.1em; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: square;
+  transition: transform 0.45s var(--ease-out);
+}
+.db .i-arrow--up { transform: rotate(-90deg); }
+
+/* ---------- buttons & links ---------- */
+.db .btn {
+  --btn-bg: transparent;
+  --btn-fg: currentColor;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 26px;
+  border-radius: 999px;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  isolation: isolate;
+  overflow: hidden;
+  transition: color 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out);
+}
+.db .btn::before {
+  content: "";
+  position: absolute; inset: 0; z-index: -1;
+  border-radius: inherit;
+  background: var(--chalk);
+  transform: translateY(101%);
+  transition: transform 0.55s var(--ease-out);
+}
+.db .btn:hover::before { transform: none; }
+.db .btn:hover .i-arrow { transform: translateX(4px); }
+.db .btn--sm { min-height: 42px; padding: 0 18px; font-size: 11.5px; }
+.db .btn--signal { --btn-bg: var(--signal); --btn-fg: var(--asphalt); }
+.db .btn--ghost { box-shadow: inset 0 0 0 1.5px var(--line); }
+.db .btn--ghost::before { background: currentColor; opacity: 0.1; }
+.db[data-current-theme="signal"] .btn--signal { --btn-bg: var(--asphalt); --btn-fg: var(--signal); }
+.db[data-current-theme="signal"] .btn--signal:hover { --btn-fg: var(--asphalt); }
+
+.db .link-quiet {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.66;
+  transition: opacity 0.3s;
+}
+.db .link-quiet:hover { opacity: 1; }
+
+.db .link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding-block: 6px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 100% 1.5px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.5s var(--ease-out);
+}
+.db .link-arrow:hover { background-size: 0% 1.5px; background-position: 100% 100%; }
+.db .link-arrow:hover .i-arrow { transform: translateX(5px); }
+
+/* Ticked lists */
+.db .ticks { display: grid; gap: 14px; }
+.db .ticks li {
+  position: relative;
+  padding-left: 32px;
+  line-height: 1.45;
+}
+.db .ticks li::before {
+  content: "";
+  position: absolute; left: 0; top: 0.28em;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background:
+    linear-gradient(135deg, transparent 43%, currentColor 43% 57%, transparent 57%) 4px 7px / 5px 5px no-repeat,
+    linear-gradient(45deg, transparent 43%, currentColor 43% 57%, transparent 57%) 6px 3px / 8px 9px no-repeat;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+  opacity: 0.9;
+}
+
+/* Split-text helpers (GSAP SplitText output) */
+.db .split-line { overflow: clip; padding-bottom: 0.08em; margin-bottom: -0.08em; }

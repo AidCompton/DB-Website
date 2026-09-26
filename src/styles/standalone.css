@@ -1,0 +1,7 @@
+/* Only used when the site runs as its own document (preview / iframe embed). */
+html { background: #0d0f12; color-scheme: dark; -webkit-text-size-adjust: 100%; }
+html, body { margin: 0; padding: 0; }
+body { background: #0d0f12; overscroll-behavior-y: none; }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: clip; }

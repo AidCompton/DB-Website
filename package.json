@@ -1,0 +1,19 @@
+{
+  "name": "driver-bureau-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Driver Bureau website redesign: scroll-driven GSAP + Three.js experience, packaged for Wix.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs --watch",
+    "serve": "npx http-server dist -p 5173 -c-1 --silent"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "gsap": "^3.15.0",
+    "lenis": "^1.3.26",
+    "three": "^0.186.1"
+  }
+}
