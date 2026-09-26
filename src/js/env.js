@@ -21,7 +21,8 @@ export function detectEnv() {
   }
 
   const low = touch || small || cores < 4 || memory < 4;
-  const tier = low ? 'medium' : 'high';
+  // Test harnesses can force a tier (window.__DB_DEBUG__ + __DB_TIER__)
+  const tier = (window.__DB_DEBUG__ && window.__DB_TIER__) || (low ? 'medium' : 'high');
   const dpr = Math.min(window.devicePixelRatio || 1, tier === 'high' ? 1.75 : 1.5);
 
   return {

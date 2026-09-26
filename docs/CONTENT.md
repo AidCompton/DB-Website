@@ -14,10 +14,10 @@ launch. Items marked **VERIFY** are the ones I'm least sure about.
 | Hero story beats (90% of accidents, telematics gap) | Home, About |
 | Our belief | About ("proactive, personalised and measurable"); values from the brand strategy documents |
 | The gap (90% + three problems) | About, Case Studies (challenge) |
-| How it works (Assess, Profile, Train, Measure) | Products, Home (EyeGym), Elevate AI service page |
-| Products (Elevate AI, Elevate+, VPJ) | Products, Elevate AI service page, FAQs |
+| How it works (Assess, Profile, Train, Measure) | Products, Home (EyeGym); self-rating vs actual performance from the VPJ/Evolve course scripts |
+| Products (VPJ, Evolve) | Client brief (Sept 2026): Elevate AI and Elevate+ are discontinued; VPJ is for South African mining and transport, Evolve for international use cases. Journey and positioning from Driver Bureau's own course scripts and VPJ marketing notes |
 | Results | Case Studies, Home |
-| Case study (mining operation) | Case Studies |
+| Case study (mining operation) | Case Studies, reworded per the client: the mine engaged Driver Bureau for its operators (always plural), who went through VPJ |
 | Who it's for (fleets, insurers, employers, mining) | Use Cases |
 | Resources (agreements, guides, API docs, policies) | Resources |
 | FAQ | FAQs / Resources |
@@ -28,10 +28,9 @@ launch. Items marked **VERIFY** are the ones I'm least sure about.
 | Figure | Where used | Source |
 | --- | --- | --- |
 | Drivers cause 90% of accidents | Hero, The gap | About / Home |
-| 28% to 55% improvement in harsh braking and acceleration, depending on training logged | Hero, Elevate+, Results chart | Home |
-| 14% improvement from a single 40-minute session | Elevate AI, Results chart | Elevate AI service page |
-| VPJ: 45-minute assessment plus ongoing EyeGym | VPJ, FAQ | FAQs |
-| EyeGym: customised daily 10-minute exercises | How it works, HUD, FAQ | Home |
+| 28% to 55% improvement in harsh braking and acceleration, depending on training logged | Hero, Results chart | Home |
+| VPJ: 45-minute assessment plus ongoing EyeGym | VPJ card, FAQ | FAQs |
+| EyeGym: customised daily 10-minute exercises | How it works, Evolve card, HUD, FAQ | Home |
 | Up to 55% reduction in high-risk driving incidents | Results, Case study | Case Studies |
 | 28% improvement in risk awareness and decision-making | Results, Case study | Case Studies |
 | Estimated 9.24% reduction in total crashes | Results, Case study | Case Studies |
@@ -90,6 +89,21 @@ launch. Items marked **VERIFY** are the ones I'm least sure about.
    mind matters." and the values (Scientifically proven, Result driven,
    Authentic, Trusted) come from Driver Bureau's brand strategy documents.
    Check you're happy to publish them on the home page.
+11. **VPJ and Evolve copy.** Evolve is described as the same journey as VPJ
+   for international markets, based on the "Evolve now first world VPJ"
+   course folder. Check in particular:
+   - the **Evolve card's "10 min a day"** figure (the EyeGym daily training
+     from the current site, assumed to apply to Evolve too);
+   - the FAQ **timing answer**, which gives VPJ's 45 minutes only, because
+     no Evolve duration was found;
+   - the **"Evolve Guide"**, which isn't listed: Resources shows the VPJ Guide
+     plus a link to all guides;
+   - the **14% single-session figure**, which was removed from the Products
+     and Results sections because it was measured for Elevate AI. Restore it
+     if it also holds for VPJ or Evolve.
+12. **Case-study figures.** The results (up to 55%, 28%, 9.24%, 3.7%) come
+   from the current driverib.com. Confirm they're backed by the case-study
+   data and approved for publication before launch.
 
 ## Pages that stay on Wix
 

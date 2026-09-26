@@ -51,11 +51,20 @@ const HOST_CSS = `
   scrollbar-color: #8bb3e4 transparent;
   outline: none;
 }
-.db-scroller.lenis-stopped { overflow: hidden; }
+/* Keep the scrollbar's space while locked (preloader): no sideways shift */
+.db-scroller.lenis-stopped { overflow: hidden; scrollbar-gutter: stable; }
 .db-scroller.lenis-smooth { scroll-behavior: auto; }
 `;
 
 const inlineScript = (js) => js.replace(/<\/script/gi, '<\\/script');
+
+// Pages that are their own document switch to the scripted layout as soon as
+// the root is parsed, so the preloader covers everything from the first paint
+// (instead of the static page flashing up while the big script loads). If
+// the script never mounts, the static page comes back once the page loads.
+// (The Wix element mounts synchronously, so it doesn't need this.)
+const EARLY_JS = `<script>(function(){var r=document.currentScript.parentNode;r.classList.add('js');addEventListener('load',function(){if(!r.__dbMounted)r.classList.remove('js')})})()</script>`;
+const withEarlyJs = (markup) => markup.replace('<div class="db" data-db-root>', (m) => `${m}\n${EARLY_JS}`);
 
 async function bundleJs() {
   const out = await esbuild.build({
@@ -248,6 +257,8 @@ async function build() {
     readFile(r('src/site.html'), 'utf8'),
   ]);
   const markup = withLogos(markupRaw.trim());
+  const docMarkup = withEarlyJs(markup);
+  if (docMarkup === markup) throw new Error('site.html: root element not found for the early script');
   const pageCss = standaloneCss + css;
   const stamp = new Date().toISOString().slice(0, 10);
 
@@ -258,10 +269,10 @@ async function build() {
   await Promise.all([
     writeFile(r('dist/assets/app.js'), js),
     writeFile(r('dist/assets/site.css'), pageCss),
-    writeFile(r('dist/index.html'), page({ markup, cssHref: 'assets/site.css', jsSrc: 'assets/app.js' })),
-    writeFile(r('dist/driver-bureau-embed.html'), page({ css: pageCss, js, markup, embed: true })),
+    writeFile(r('dist/index.html'), page({ markup: docMarkup, cssHref: 'assets/site.css', jsSrc: 'assets/app.js' })),
+    writeFile(r('dist/driver-bureau-embed.html'), page({ css: pageCss, js, markup: docMarkup, embed: true })),
     writeFile(r('dist/wix/driver-bureau-element.js'), wixElement({ css, js, markup, stamp })),
-    writeFile(r('dist/preview/driver-bureau.html'), artifactFragment({ css: pageCss, js, markup })),
+    writeFile(r('dist/preview/driver-bureau.html'), artifactFragment({ css: pageCss, js, markup: docMarkup })),
     copyFile(r('src/wix/velo-page-code.js'), r('dist/wix/velo-page-code.js')),
   ]);
   const kb = (s) => `${(Buffer.byteLength(s) / 1024).toFixed(0)} KB`;

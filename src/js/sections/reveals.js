@@ -131,8 +131,9 @@ export function initReveals(ctx) {
   const range = root.querySelector('[data-range]');
   if (range) {
     const tl = gsap.timeline({ scrollTrigger: { trigger: range, start: 'top 80%', once: true } });
-    tl.from(range.querySelector('[data-range-mark]'), { scaleY: 0, duration: 0.6, ease: 'power3.out' })
-      .from(range.querySelector('[data-range-band]'), { scaleX: 0, duration: 1.4, ease: 'expo.out' }, 0.2)
+    const mark = range.querySelector('[data-range-mark]');
+    if (mark) tl.from(mark, { scaleY: 0, duration: 0.6, ease: 'power3.out' }, 0);
+    tl.from(range.querySelector('[data-range-band]'), { scaleX: 0, duration: 1.4, ease: 'expo.out' }, 0.2)
       .from(range.querySelectorAll('.range__notes li'), { y: 12, autoAlpha: 0, stagger: 0.1, duration: 0.7 }, 0.5);
   }
 

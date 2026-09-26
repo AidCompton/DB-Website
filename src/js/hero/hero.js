@@ -78,8 +78,12 @@ export function createHero(ctx) {
     }
     try {
       world = await createWorld(canvas, env.quality, onProgress);
+      width = stage.clientWidth;
+      height = stage.clientHeight;
       world.setSize(width, height);
       await world.warmup();
+      if (!env.reduced) await calibrate();
+      onProgress(1);
     } catch (err) {
       console.warn('[Driver Bureau] 3D scene unavailable, showing the static hero.', err);
       world = null;
@@ -247,42 +251,87 @@ export function createHero(ctx) {
     hudLeader.style.opacity = String(hudState.on);
   }
 
-  // ------------------------------------------------------------ loop
-  let perfFrames = 0;
-  let perfTime = 0;
-  let dpr = env.quality.dpr;
+  // ------------------------------------------------------------ quality
   // Below ~40 fps, step down: depth of field, then resolution, then AO and
   // the grass shells, then the last of the resolution
+  let dpr = env.quality.dpr;
   let rungs = 0;
-  function adaptResolution(dt) {
+  function lowerDpr() {
+    if (dpr <= 1) return false;
+    dpr = Math.max(1, dpr - 0.25);
+    world.setPixelRatio(dpr);
+    world.setSize(width, height);
+    return true;
+  }
+  function stepDown() {
+    rungs++;
+    if (rungs === 2 && lowerDpr()) return true;
+    return world.degrade() || lowerDpr();
+  }
+
+  // Behind the preloader, time a few frames and step down until the scene
+  // holds ~40 fps, so the quality never visibly changes once it's on screen.
+  // A device that can't get near that even at the bottom of the ladder (no
+  // graphics acceleration, say) gets one still frame of the truck instead of
+  // an animation that would stall the whole page.
+  const FRAME_BUDGET_MS = 25;
+  const STILL_MS = 80;
+  let still = false;
+  async function calibrate() {
+    if (window.__DB_DEBUG__ && window.__DB_NOCALIBRATE__) return;
+    let ms = await world.benchmark(rig);
+    const log = () => window.__DB_DEBUG__ && console.log(`[calibrate] ${ms.toFixed(1)} ms/frame, step ${rungs}, dpr ${dpr}`);
+    log();
+    if (ms > STILL_MS * 3) {
+      while (stepDown());
+      still = true;
+      return;
+    }
+    for (let i = 0; i < 8 && ms > FRAME_BUDGET_MS; i++) {
+      if (!stepDown()) break;
+      ms = await world.benchmark(rig);
+      log();
+    }
+    still = ms > STILL_MS;
+  }
+
+  // Afterwards keep watching (a bigger window, a busy machine), but only
+  // once the intro has settled
+  let perfArmed = false;
+  let perfFrames = 0;
+  let perfTime = 0;
+  let pendingStep = false;
+  function watchFrameRate(dt) {
+    if (!perfArmed) return;
     perfFrames++;
     perfTime += dt;
     if (perfFrames < 90) return;
-    const avg = perfTime / perfFrames;
+    if (perfTime / perfFrames > 1 / 40) pendingStep = true;
     perfFrames = 0;
     perfTime = 0;
-    if (avg <= 1 / 40) return;
-    rungs++;
-    const lowerDpr = () => {
-      if (dpr <= 1) return false;
-      dpr = Math.max(1, dpr - 0.25);
-      world.setPixelRatio(dpr);
-      world.setSize(width, height);
-      return true;
-    };
-    if (rungs === 2 && lowerDpr()) return;
-    if (!world.degrade()) lowerDpr();
   }
 
+  // ------------------------------------------------------------ loop
   let debugPaused = false;
+  let lastTime = 0;
   function tick(time, deltaMs) {
     // Reduced motion shows a still frame (renderOnce), so nothing to animate
     if (!world || !active || debugPaused || env.reduced) return;
+    if (still) {
+      updateHud();
+      return;
+    }
+    // A step can resize the canvas, which clears it: do it before drawing
+    if (pendingStep) {
+      pendingStep = false;
+      stepDown();
+    }
     const dt = Math.min(deltaMs / 1000, 0.05);
+    lastTime = time;
     world.update(rig, dt, time);
     updateHud();
     world.render(dt);
-    adaptResolution(dt);
+    watchFrameRate(dt);
   }
 
   function renderOnce() {
@@ -292,37 +341,62 @@ export function createHero(ctx) {
   }
 
   // ------------------------------------------------------------ intro
-  function playIntro() {
-    const tl = gsap.timeline();
+  // Set up before the preloader leaves: the frames drawn behind it are
+  // already the intro's first frame, so the wipe opens straight onto the
+  // truck rolling in, with no settled frame that then jumps back. (Created
+  // after the scroll timeline, and on the cue's children rather than the
+  // cue, so the scroll tweens keep their own start values.)
+  let introTl = null;
+  function prepareIntro() {
     if (env.reduced) {
       rig.lights = 1;
-      renderOnce();
-      return tl;
+      return;
     }
     introSplit = SplitText.create(title, { type: 'lines', mask: 'lines', linesClass: 'split-line' });
-    Object.assign(rig, { introDist: 9, introLift: 1.2 });
-    tl.to(rig, { introDist: 0, introLift: 0, duration: 2.8, ease: 'power3.out' }, 0)
-      .to(rig, { keyframes: [{ lights: 0.7, duration: 0.07 }, { lights: 0.05, duration: 0.09 }, { lights: 1, duration: 0.14 }] }, 0.5)
-      .from(introSplit.lines, { yPercent: 108, duration: 1.2, stagger: 0.09, ease: 'expo.out' }, 0.15)
-      .from(intro.querySelectorAll('.hero__eyebrow, .hero__lede, .hero__ctas'), { y: 26, autoAlpha: 0, duration: 1, stagger: 0.08, ease: 'power3.out' }, 0.5)
-      .from(cue, { autoAlpha: 0, duration: 0.8 }, 1.1)
+    const parts = intro.querySelectorAll('.hero__eyebrow, .hero__tagline, .hero__lede, .hero__ctas');
+    // fromTo tweens apply their start values now, while the timeline waits
+    introTl = gsap.timeline({ paused: true });
+    if (still) {
+      Object.assign(rig, { introDist: 0, introLift: 0, lights: 1 });
+    } else {
+      introTl
+        .fromTo(rig, { introDist: 9, introLift: 1.2 }, { introDist: 0, introLift: 0, duration: 2.8, ease: 'power3.out' }, 0)
+        .fromTo(rig, { lights: 0 }, { lights: 1, duration: 1.1, ease: 'power2.inOut' }, 0.4);
+    }
+    introTl
+      .fromTo(introSplit.lines, { yPercent: 108 }, { yPercent: 0, duration: 1.2, stagger: 0.09, ease: 'expo.out' }, 0.15)
+      .fromTo(parts, { y: 26, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1, stagger: 0.08, ease: 'power3.out' }, 0.5)
+      .fromTo(cue.children, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8 }, 1.1)
       .add(() => {
         // Hand the title back to normal text flow so it re-wraps on resize
         introSplit.revert();
         introSplit = null;
+        perfArmed = true;
       });
-    return tl;
+  }
+
+  function playIntro() {
+    if (env.reduced) {
+      renderOnce();
+      return null;
+    }
+    return introTl ? introTl.play() : null;
   }
 
   // ------------------------------------------------------------ lifecycle
   function onResize() {
-    width = stage.clientWidth;
-    height = stage.clientHeight;
+    const w = stage.clientWidth;
+    const h = stage.clientHeight;
+    if (w === width && h === height) return; // e.g. the observer's first call
+    width = w;
+    height = h;
     panelSize.w = 0;
-    if (world) {
-      world.setSize(width, height);
-      if (!active || env.reduced) renderOnce();
-    }
+    if (!world) return;
+    world.setSize(width, height);
+    // Resizing clears the canvas: redraw now, or the next paint is empty
+    world.update(rig, 0, lastTime);
+    updateHud();
+    world.render(0);
   }
   const ro = new ResizeObserver(() => onResize());
 
@@ -332,6 +406,7 @@ export function createHero(ctx) {
     gsap.set(hudDriver, { autoAlpha: 0 });
     gsap.set(hud, { autoAlpha: 0 });
     buildTimeline();
+    prepareIntro();
     ro.observe(stage);
     const vis = ScrollTrigger.create({
       trigger: track,
@@ -346,6 +421,8 @@ export function createHero(ctx) {
 
   function destroy() {
     gsap.ticker.remove(tick);
+    if (introTl) introTl.kill();
+    if (introSplit) introSplit.revert();
     ro.disconnect();
     if (mm) mm.revert();
     if (world) world.dispose();

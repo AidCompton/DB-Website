@@ -2,7 +2,6 @@
 // (desktop), with a small truck driving the progress line. Each step has a
 // looping illustration that only runs while it can be seen.
 import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 const SVGNS = 'http://www.w3.org/2000/svg';
 
@@ -53,14 +52,19 @@ export function initProcess(ctx) {
   if (!env.reduced) initArt(section);
 }
 
+// Play an illustration only while it's actually on screen. An
+// IntersectionObserver sees where it really is while the rail is pinned and
+// sliding sideways; a ScrollTrigger on it only knows its unpinned position,
+// so it switched off (freezing the art half-drawn) while still in view.
 function whileVisible(el, anim) {
-  ScrollTrigger.create({
-    trigger: el,
-    start: 'top bottom',
-    end: 'bottom top',
-    onToggle: (self) => (self.isActive ? anim.play() : anim.pause()),
-  });
   anim.pause();
+  if (!('IntersectionObserver' in window)) {
+    anim.play();
+    return;
+  }
+  new IntersectionObserver((entries) => {
+    entries.forEach((e) => (e.isIntersecting ? anim.play() : anim.pause()));
+  }).observe(el);
 }
 
 function initArt(section) {
@@ -132,17 +136,24 @@ function initArt(section) {
     whileVisible(grid.ownerSVGElement, anim);
   }
 
-  // 04 Measure: the trend line draws, holds, and resets
+  // 04 Measure: the trend line draws in once and stays drawn (a chart that
+  // erases itself reads as one that failed to load); the latest reading pulses
   const line = section.querySelector('[data-measure-line]');
   if (line) {
     const dot = section.querySelector('[data-measure-dot]');
     gsap.set(dot, { transformOrigin: '50% 50%', scale: 0 });
-    const anim = gsap.timeline({ repeat: -1, repeatDelay: 0.5 })
-      .fromTo(line, { drawSVG: '0%' }, { drawSVG: '100%', duration: 2, ease: 'power2.inOut' })
-      .fromTo(dot, { scale: 0 }, { scale: 1, duration: 0.5, ease: 'back.out(3)' }, '-=0.25')
-      .to({}, { duration: 1.8 })
-      .to(line, { drawSVG: '100% 100%', duration: 0.8, ease: 'power2.in' })
-      .to(dot, { scale: 0, duration: 0.3 }, '<');
-    whileVisible(line.ownerSVGElement, anim);
+    gsap.set(line, { drawSVG: '0%' });
+    const pulse = gsap.to(dot, { scale: 1.35, duration: 0.9, ease: 'sine.inOut', repeat: -1, yoyo: true, paused: true });
+    const draw = gsap
+      .timeline({ paused: true, onComplete: () => pulse.play() })
+      .to(line, { drawSVG: '100%', duration: 2, ease: 'power2.inOut' })
+      .to(dot, { scale: 1, duration: 0.5, ease: 'back.out(3)' }, '-=0.25');
+    whileVisible(line.ownerSVGElement, {
+      play: () => (draw.progress() < 1 ? draw.play() : pulse.play()),
+      pause: () => {
+        draw.pause();
+        pulse.pause();
+      },
+    });
   }
 }

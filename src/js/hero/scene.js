@@ -297,10 +297,12 @@ export async function createWorld(canvas, quality, onProgress = () => {}) {
 
   function update(rig, dt, time) {
     const s = path.start + rig.travel * DRIVE_DISTANCE;
-    const ds = s - state.s;
-    const speed = dt > 0 ? Math.abs(ds) / dt : 0;
-    state.accel = dt > 0 ? (speed - state.speed) / dt : 0;
-    state.speed = lerp(state.speed, speed, 0.2);
+    // dt 0 is a redraw of the same moment (after a resize): keep the motion
+    if (dt > 0) {
+      const speed = Math.abs(s - state.s) / dt;
+      state.accel = (speed - state.speed) / dt;
+      state.speed = lerp(state.speed, speed, 0.2);
+    }
     state.prevS = state.s;
     state.s = s;
 
@@ -375,7 +377,29 @@ export async function createWorld(canvas, quality, onProgress = () => {}) {
     update(rig, 0.016, 0);
     if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
     render();
-    onProgress(1);
+    onProgress(0.9);
+  }
+
+  // Median cost of a few frames with the GPU made to finish each one
+  // (readPixels waits for it). Runs behind the preloader. A frame slower
+  // than bailMs ends it early: no need to keep measuring a hopeless case.
+  const probe = new Uint8Array(4);
+  async function benchmark(rig, frames = 5, bailMs = 250) {
+    const gl = renderer.getContext();
+    const times = [];
+    for (let i = 0; i <= frames; i++) {
+      await pause(); // let the preloader keep animating
+      const t0 = performance.now();
+      update(rig, 1 / 60, i / 60);
+      post.render(1 / 60);
+      renderer.setRenderTarget(null);
+      gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, probe);
+      const ms = performance.now() - t0;
+      if (ms > bailMs) return ms;
+      if (i > 0) times.push(ms); // the first carries one-off allocation costs
+    }
+    times.sort((a, b) => a - b);
+    return times[times.length >> 1];
   }
 
   function dispose() {
@@ -394,5 +418,5 @@ export async function createWorld(canvas, quality, onProgress = () => {}) {
     });
   }
 
-  return { renderer, scene, camera, path, truck, state, post, csm, hemi, update, render, setSize, setPixelRatio, degrade, cabRect, warmup, dispose };
+  return { renderer, scene, camera, path, truck, state, post, csm, hemi, update, render, setSize, setPixelRatio, degrade, cabRect, warmup, benchmark, dispose };
 }

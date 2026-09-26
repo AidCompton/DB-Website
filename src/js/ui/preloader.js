@@ -4,7 +4,7 @@ import { gsap } from 'gsap';
 
 export function createPreloader(root, env) {
   const el = root.querySelector('[data-preloader]');
-  if (!el) return { progress() {}, done: async () => {} };
+  if (!el) return { progress() {}, done: async (onReveal = () => {}) => onReveal() };
   const count = el.querySelector('[data-preloader-count]');
   const bar = el.querySelector('[data-preloader-bar]');
   const mark = el.querySelector('.preloader__mark');
@@ -37,13 +37,18 @@ export function createPreloader(root, env) {
       tl.from(p, { ...v, autoAlpha: 0, transformOrigin: '50% 50%', duration: 1.1, ease: 'expo.out' }, 0.08 + i * 0.09);
     });
     if (word) tl.from(word, { autoAlpha: 0, y: 14, letterSpacing: '0.5em', duration: 1.1, ease: 'expo.out' }, 0.45);
+  } else {
+    // The CSS keeps them hidden until animated; with no animation, just show them
+    gsap.set([...mark.querySelectorAll('[data-piece]'), word].filter(Boolean), { autoAlpha: 1 });
   }
 
   function progress(p) {
     target = Math.max(target, Math.min(1, p));
   }
 
-  async function done() {
+  // onReveal runs as the wipe begins, so whatever it starts is already moving
+  // when the page shows through
+  async function done(onReveal = () => {}) {
     target = 1;
     const wait = Math.max(0, MIN_TIME - (performance.now() - started));
     await new Promise((r) => setTimeout(r, wait));
@@ -58,13 +63,15 @@ export function createPreloader(root, env) {
     bar.style.transform = 'scaleX(1)';
     if (env.reduced) {
       el.remove();
+      onReveal();
       return;
     }
     await gsap
       .timeline()
       .to([mark, word].filter(Boolean), { scale: 0.86, autoAlpha: 0, duration: 0.45, ease: 'power3.in', stagger: 0.04 })
       .to(el.querySelector('.preloader__foot'), { autoAlpha: 0, y: -12, duration: 0.35 }, 0)
-      .to(el, { clipPath: 'inset(0% 0% 100% 0%)', duration: 1.0, ease: 'expo.inOut' }, 0.25);
+      .to(el, { clipPath: 'inset(0% 0% 100% 0%)', duration: 1.0, ease: 'expo.inOut' }, 0.25)
+      .call(onReveal, null, 0.3);
     el.remove();
   }
 

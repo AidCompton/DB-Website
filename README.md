@@ -49,7 +49,7 @@ illustrations, and scroll-linked tweens recolour the page between sections.
 2. **Our belief:** statement that lights up word by word, and the brand values
 3. **The gap:** 90% figure plus stacking problem cards
 4. **How it works:** Assess → Profile → Train → Measure, scrolling sideways, with a reaction-time mini test
-5. **Products:** Elevate AI, Elevate+, VPJ
+5. **Products:** VPJ (South African mining and transport) and Evolve (international fleets, insurers and employers)
 6. **Results:** key figures and a to-scale chart of harsh-braking improvement
 7. **Case study:** challenge → solution → results, pinned
 8. **Who it's for:** fleets, insurers, employers, mining (tabs)
@@ -100,9 +100,13 @@ Outputs in `dist/`:
 - **Performance:** textures are generated at runtime (no image downloads).
   The 3D scene renders only while the hero is on screen. Desktops get the
   full treatment (MSAA, ambient occlusion, depth of field, four shadow
-  cascades); phones and small screens get a lighter tier. If frames still
-  run slow, the scene steps down on its own: depth of field, then
-  resolution, then ambient occlusion and the grass shells.
+  cascades); phones and small screens get a lighter tier. While the
+  preloader is still up, the scene times a few frames and steps down until
+  it runs smoothly (depth of field, then resolution, then ambient occlusion
+  and the grass shells), so quality never changes on screen. A device that
+  is far too slow even then (no graphics acceleration) shows a still frame
+  of the truck instead of animating. The intro is set up behind the
+  preloader, so the wipe opens straight onto the truck rolling in.
 - **Accessibility:** real HTML text throughout, skip link, keyboard-operable
   tabs, accordion and menu, visible focus states, `aria-live` results on the
   reaction test.

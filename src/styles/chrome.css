@@ -14,6 +14,9 @@
 .db .preloader__brand { display: grid; justify-items: center; gap: 22px; }
 .db .preloader__mark { width: clamp(72px, 9vw, 104px); color: var(--white); }
 .db .preloader__mark .logo-mark { overflow: visible; }
+/* Hidden until the script flies them in, so they don't show and then jump */
+.db.js .preloader__mark [data-piece],
+.db.js .preloader__word { visibility: hidden; }
 .db .preloader__word {
   font-size: 15px; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase;
 }

@@ -167,8 +167,9 @@ export async function mount(options = {}) {
   safely('hero', () => hero.start());
   ScrollTrigger.refresh();
 
-  await preloader.done();
-  safely('intro', () => hero.playIntro());
+  // The intro starts as the wipe begins, so the first thing anyone sees is
+  // the truck already rolling in
+  await preloader.done(() => safely('intro', () => hero.playIntro()));
   lenis?.start();
 
   // Deep link (#faq etc.) once everything has measured itself

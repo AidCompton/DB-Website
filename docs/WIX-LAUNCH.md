@@ -141,4 +141,4 @@ Stats, product names and FAQ answers are plain HTML in that file.
 | Placeholder box on the live site | Site lacks Premium/connected domain, or the element is inside an iframe. Set `mode="live"` via Velo code. |
 | Nothing shows at all | Tag name doesn't match `driver-bureau-site`, or the file wasn't saved in `public/custom-elements/`. |
 | Static hero instead of the 3D scene | The device has WebGL turned off, or the visitor asked for reduced motion. This is intended. |
-| Jerky animation on an old laptop | The scene steps down automatically after a couple of seconds (depth of field, resolution, ambient occlusion). |
+| Jerky animation on an old laptop | The scene measures itself behind the preloader and steps down (depth of field, resolution, ambient occlusion) before it's shown. A machine without graphics acceleration gets a still frame of the truck. |
