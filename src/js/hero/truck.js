@@ -125,12 +125,12 @@ function createMaterials(tex, renderer) {
     bumper: std({ color: 0x2c3036, roughness: 0.48, metalness: 0.1 }),
     rubber: std({ color: 0x0e0f10, roughness: 0.92 }),
     chrome: std({ color: 0xffffff, metalness: 1, roughness: 0.05 }),
-    alu: std({ color: 0xd9dde2, metalness: 1, roughness: 0.2 }),
+    alu: std({ color: 0xe4e7eb, metalness: 1, roughness: 0.26 }),
     aluBrushed: phys({ color: 0xcfd3d8, metalness: 1, roughness: 0.32, anisotropy: 0.7 }),
     chassis: std({ color: 0x131416, roughness: 0.66, metalness: 0.25 }),
     darkMetal: std({ color: 0x2c2e31, roughness: 0.5, metalness: 0.6 }),
     glass: phys({ color: 0x131a22, roughness: 0.03, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.01 }),
-    screen: phys({ map: tex.screen, roughness: 0.03, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.01 }),
+    screen: phys({ map: tex.screen, color: 0xb8bcc2, roughness: 0.04, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.01, specularIntensity: 1.2 }),
     mirror: std({ color: 0xe8ecf0, metalness: 1, roughness: 0.015, envMapIntensity: 1.4 }),
     head: std({ color: 0xdfe3e8, emissive: 0xfff6ea, emissiveIntensity: 0, roughness: 0.12, metalness: 0.6 }),
     drl: std({ color: 0xdfe3e8, emissive: 0xf4f8ff, emissiveIntensity: 0, roughness: 0.2 }),
@@ -191,23 +191,66 @@ function rimBlurTexture(renderer) {
   return t;
 }
 
-// Windscreen tint: darker toward the dash, a blue-grey sun strip on top
+// Windscreen: a dim view of the cab through tinted glass (dashboard, the
+// steering wheel and driver on the right-hand side, as seen from in front,
+// i.e. on the left of the texture), with a blue-grey sun strip on top.
+// Reflections come from the clearcoat on top of this.
 function screenTexture(renderer) {
+  const W = 512, H = 256;
   const c = document.createElement('canvas');
-  c.width = 64;
-  c.height = 256;
+  c.width = W;
+  c.height = H;
   const ctx = c.getContext('2d');
-  const g = ctx.createLinearGradient(0, 0, 0, 256);
-  g.addColorStop(0, '#1b2a3c');
-  g.addColorStop(0.16, '#1b2a3c');
-  g.addColorStop(0.2, '#2a333c');
-  g.addColorStop(0.7, '#20262d');
-  g.addColorStop(0.86, '#121518');
-  g.addColorStop(1, '#0b0d0f');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 64, 256);
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#1e2c3d');
+  bg.addColorStop(0.15, '#1e2c3d');
+  bg.addColorStop(0.19, '#20262d');
+  bg.addColorStop(0.6, '#181c21');
+  bg.addColorStop(1, '#0f1215');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+  // Back wall and the sleeper curtain
+  ctx.fillStyle = 'rgba(40,44,50,0.35)';
+  ctx.fillRect(0, H * 0.28, W, H * 0.34);
+  // Seats: driver (left of texture) and passenger headrests
+  const seat = (x) => {
+    ctx.fillStyle = '#23272c';
+    ctx.beginPath();
+    ctx.ellipse(x, H * 0.5, 34, 24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(x - 46, H * 0.56, 92, H * 0.3);
+  };
+  seat(W * 0.25);
+  seat(W * 0.76);
+  // Driver: head and shoulders, a little lighter than the cab
+  ctx.fillStyle = '#2b2f35';
+  ctx.beginPath();
+  ctx.ellipse(W * 0.25, H * 0.47, 21, 26, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(W * 0.25, H * 0.74, 60, 34, 0, Math.PI, Math.PI * 2);
+  ctx.fill();
+  ctx.fillRect(W * 0.25 - 60, H * 0.74, 120, H * 0.2);
+  ctx.fillStyle = 'rgba(120,98,84,0.35)';
+  ctx.beginPath();
+  ctx.ellipse(W * 0.25 + 4, H * 0.49, 13, 17, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Dashboard top edge with a soft highlight, steering wheel rim
+  ctx.fillStyle = '#121518';
+  ctx.fillRect(0, H * 0.82, W, H * 0.18);
+  ctx.fillStyle = 'rgba(150,160,170,0.18)';
+  ctx.fillRect(0, H * 0.82, W, 2);
+  ctx.strokeStyle = '#0c0e10';
+  ctx.lineWidth = 7;
+  ctx.beginPath();
+  ctx.ellipse(W * 0.25, H * 0.86, 54, 20, 0, Math.PI, Math.PI * 2);
+  ctx.stroke();
+  // Mirror and a hanging tag, for scale
+  ctx.fillStyle = '#0c0e10';
+  ctx.fillRect(W * 0.47, H * 0.2, 36, 10);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
   return t;
 }
 

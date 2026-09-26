@@ -276,7 +276,8 @@ export function createHero(ctx) {
 
   let debugPaused = false;
   function tick(time, deltaMs) {
-    if (!world || !active || debugPaused) return;
+    // Reduced motion shows a still frame (renderOnce), so nothing to animate
+    if (!world || !active || debugPaused || env.reduced) return;
     const dt = Math.min(deltaMs / 1000, 0.05);
     world.update(rig, dt, time);
     updateHud();

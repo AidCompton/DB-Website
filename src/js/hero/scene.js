@@ -170,6 +170,14 @@ export async function createWorld(canvas, quality, onProgress = () => {}) {
   const envRT = pmrem.fromScene(envScene, 0.015, 0.1, 8000);
   scene.environment = envRT.texture;
   scene.environmentIntensity = 0.6;
+  // Polished metal and glass read by what they reflect: give them the sky at
+  // full strength (materials with their own envMap ignore the scene value)
+  for (const k of ['alu', 'chrome', 'aluBrushed', 'mirror', 'screen', 'glass', 'paint']) {
+    const m = truck.materials[k];
+    m.envMap = envRT.texture;
+    m.envMapIntensity = k === 'paint' ? 0.8 : 1.1;
+    m.needsUpdate = true;
+  }
   pmrem.dispose();
   envSky.mesh.geometry.dispose();
   envSky.mesh.material.dispose();
