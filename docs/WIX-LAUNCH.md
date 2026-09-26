@@ -26,8 +26,11 @@ Check the plan in your Wix dashboard before you start.
 
 ## Option A: Custom Element from a Velo file (recommended)
 
-1. **Duplicate your site first** (Site Actions → Duplicate) or work on a new,
-   hidden page, so the current site stays live while you test.
+1. **Test on a hidden page of the live site.** Add a new page, hide it from
+   the menu, turn off search-engine indexing in its SEO settings, and
+   password-protect it if you like. Don't test on a duplicate site: a
+   duplicate is a free site without your domain, so Wix won't show the
+   element at its published address (only in Preview).
 2. **Turn on coding.** In the Wix Editor, enable *Dev Mode* (Velo). In Wix
    Studio, open the *Code* panel.
 3. **Add the file.** In the code sidebar under **Public**, create a folder named
@@ -56,15 +59,17 @@ Check the plan in your Wix dashboard before you start.
    - Description: `Driver Bureau profiles each driver's psychomotor ability and trains it with individualised EyeGym programmes, for a 28% to 55% improvement in harsh braking and acceleration.`
 7. **Publish**, then test on a phone and a desktop (see checklist below).
 
-To make it the home page, put the element on your Home page (you can delete
-or hide the old sections behind it; the element covers them anyway).
+**Going live.** When the test page passes the checklist, remove its password,
+turn indexing back on and make it the home page (Pages panel → the page's
+menu → *Set as Homepage*). Keep the old home page, hidden, for a while: if
+anything goes wrong, set it back as the home page and republish.
 
 ### Link targets
 
-All buttons point to your existing Wix pages (`/book-a-meeting`, `/resources`,
-`/faqs`, `/about`, `/case-studies`, `/use-cases`) and the portal at
-`admin.driverib.com/login`, so Wix Bookings and your resource downloads keep
-working. To point a link somewhere else without rebuilding, use the element's
+All buttons are full links to your existing pages on `www.driverib.com`
+(`/book-a-meeting`, `/resources`, `/faqs`, `/about`, `/case-studies`,
+`/use-cases`) and the portal at `admin.driverib.com/login`, so Wix Bookings
+and your resource downloads keep working, including from the test page. To point a link somewhere else without rebuilding, use the element's
 **Set Attribute** button in the editor:
 
 | Attribute | Controls |
@@ -98,6 +103,15 @@ Use it only if Option A isn't possible. I haven't been able to confirm Wix's
 current size limit for pasted embed code; if Wix rejects the paste, host the
 file and use *Website address* mode instead.
 
+## Search engines
+
+The element builds the page with JavaScript after Wix loads it, so its text
+isn't in the HTML that Wix sends. Google normally renders JavaScript before
+indexing, but I can't promise how it will treat this page, and other crawlers
+and link previews may only see the SEO title and description from step 6.
+After launch, check the page with URL Inspection in Google Search Console to
+see what Google renders.
+
 ## After publishing: checklist
 
 - [ ] Hero loads, truck appears, scrolling moves the camera from road level to
@@ -107,7 +121,9 @@ file and use *Website address* mode instead.
       experience sits at `z-index: 9000`; if the banner is hidden, lower the
       `z-index` attribute or raise the banner's layer.
 - [ ] Wix Chat or other floating widgets: same check as the cookie banner.
-- [ ] Test on iPhone (Safari) and Android (Chrome), including landscape.
+- [ ] Test on iPhone (Safari) and Android (Chrome), including landscape. If
+      the phone shows the old page, check the element isn't hidden in the
+      editor's mobile view.
 - [ ] Turn on "Reduce motion" in your OS settings and reload. You should get a
       still hero and simple page with no pinned scrolling.
 - [ ] Google Analytics / Wix Analytics still record the page view.
