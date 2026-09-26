@@ -9,9 +9,10 @@ launch. Items marked **VERIFY** are the ones I'm least sure about.
 
 | Section in the redesign | Source page(s) on driverib.com |
 | --- | --- |
-| Hero ("Fleet safety starts behind the wheel") | Home, About |
+| Hero ("Proactively reduce driver risk. Because peace of mind matters.") | Brand strategy documents (tagline) |
+| Hero story beat ("Fleet safety starts behind the wheel") | Home, About |
 | Hero story beats (90% of accidents, telematics gap) | Home, About |
-| Our belief | About ("proactive, personalised and measurable") |
+| Our belief | About ("proactive, personalised and measurable"); values from the brand strategy documents |
 | The gap (90% + three problems) | About, Case Studies (challenge) |
 | How it works (Assess, Profile, Train, Measure) | Products, Home (EyeGym), Elevate AI service page |
 | Products (Elevate AI, Elevate+, VPJ) | Products, Elevate AI service page, FAQs |
@@ -53,13 +54,24 @@ launch. Items marked **VERIFY** are the ones I'm least sure about.
      only.
    - The FAQ about **API usage limits** is not reproduced. The section links
      to your full FAQ page instead.
-4. **Logo.** The reticle mark and "DRIVER BUREAU" wordmark are placeholders.
-   Send the official logo (SVG) and it can be swapped in the header,
-   preloader, footer and the truck livery.
-5. **Brand colours.** Asphalt `#0D0F12`, Concrete `#E3E2DC` and Road-line
-   Yellow `#FFC21A` were chosen for the redesign, not taken from your
-   current site. They live in `src/styles/base.css` and
-   `src/js/ui/theme.js` if you want to change them.
+4. **Logo.** The monogram is the official mark, redrawn as a vector from
+   the logo file in the Driver Bureau CRM repository (`public/logo.png`) and
+   checked against it. The full lockup files ("Group" PNGs in the Dropbox
+   *New Logos* folder) couldn't be opened from the build environment, so the
+   name beside the monogram is set in Montserrat Bold. If there is an
+   official lockup or wordmark (ideally SVG), send it and it can replace
+   that in the header, footer and on the trailer.
+5. **Brand colours.** Driver Bureau blue `#24599A` and white come from the
+   brand guidelines (the hex code appears in the guidelines PDF and matches
+   the logo file). The brand strategy documents list the colours as
+   *Green, Blue, White*, but no green hex code could be found in the
+   guidelines' text, so green isn't used. Send the green's hex code if it
+   should appear. Navy `#0E243E`, ink `#0B1B2E`, mist `#EEF3F9` and sky
+   `#8BB3E4` are shades and tints of the brand blue chosen for this site;
+   they live in `src/styles/base.css` and `src/js/ui/theme.js`.
+   **Typography:** the guidelines name Montserrat (and Montserrat Bold). I
+   couldn't read whether they set particular weights or sizes for headings
+   and body text, so headings use Bold and text uses Regular/Medium.
 6. **HUD readouts in the hero** (telematics log times, meter levels, "area of
    concern") are illustrative animation, not real data.
 7. **Address.** A directory lists 141 Taunton Rd, Pietermaritzburg. It isn't
@@ -69,7 +81,15 @@ launch. Items marked **VERIFY** are the ones I'm least sure about.
    of the site, so they aren't used. A "Trusted by" logo strip can be added
    if you'd like to show current clients.
 9. **Truck.** South African traffic keeps left and cab-overs are
-   right-hand drive; the scene follows both. The livery shows `driverib.com`.
+   right-hand drive; the scene follows both. The truck isn't modelled on a
+   particular manufacturer and carries no manufacturer badges. The livery
+   shows the monogram, the name, the tagline and `driverib.com`. The front
+   number plate (`ND 245-99`) is made up; change or remove it in
+   `src/js/hero/livery.js` if you prefer.
+10. **Tagline and values.** "Proactively reduce driver risk. Because peace of
+   mind matters." and the values (Scientifically proven, Result driven,
+   Authentic, Trusted) come from Driver Bureau's brand strategy documents.
+   Check you're happy to publish them on the home page.
 
 ## Pages that stay on Wix
 

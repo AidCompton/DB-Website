@@ -3,12 +3,9 @@
 
   <!-- ============ PRELOADER ============ -->
   <div class="preloader" data-preloader aria-hidden="true">
-    <div class="preloader__mark">
-      <svg viewBox="0 0 64 64" class="mark-svg">
-        <circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="3"/>
-        <path d="M32 2v12M32 50v12M2 32h12M50 32h12" stroke="currentColor" stroke-width="3"/>
-        <circle cx="32" cy="32" r="6" class="mark-svg__dot"/>
-      </svg>
+    <div class="preloader__brand">
+      <div class="preloader__mark"><!--logo--></div>
+      <p class="preloader__word">Driver Bureau</p>
     </div>
     <div class="preloader__foot">
       <span class="preloader__label">Loading the road</span>
@@ -20,11 +17,7 @@
   <!-- ============ HEADER ============ -->
   <header class="site-header" data-header>
     <a class="brand" href="#top" data-scroll-to aria-label="Driver Bureau, back to top">
-      <svg viewBox="0 0 64 64" class="brand__mark mark-svg" aria-hidden="true">
-        <circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="5"/>
-        <path d="M32 0v14M32 50v14M0 32h14M50 32h14" stroke="currentColor" stroke-width="5"/>
-        <circle cx="32" cy="32" r="7" class="mark-svg__dot"/>
-      </svg>
+      <span class="brand__mark"><!--logo--></span>
       <span class="brand__word">Driver Bureau</span>
     </a>
 
@@ -38,7 +31,7 @@
 
     <div class="site-header__actions">
       <a class="link-quiet" href="https://admin.driverib.com/login" data-link="portal">Portal login</a>
-      <a class="btn btn--signal btn--sm" href="https://www.driverib.com/book-a-meeting" data-link="book" data-magnetic>
+      <a class="btn btn--primary btn--sm" href="https://www.driverib.com/book-a-meeting" data-link="book" data-magnetic>
         <span>Book a meeting</span>
       </a>
       <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="db-mobile-menu" data-menu-toggle>
@@ -59,7 +52,7 @@
       <a href="#faq" data-scroll-to><span>FAQ</span></a>
     </nav>
     <div class="mobile-menu__foot">
-      <a class="btn btn--signal" href="https://www.driverib.com/book-a-meeting" data-link="book"><span>Book a meeting</span></a>
+      <a class="btn btn--primary" href="https://www.driverib.com/book-a-meeting" data-link="book"><span>Book a meeting</span></a>
       <a class="link-quiet" href="https://admin.driverib.com/login" data-link="portal">Portal login</a>
       <span class="mobile-menu__phone">+27 82 901 8498</span>
     </div>
@@ -90,7 +83,7 @@
 
   <main id="main">
     <!-- ============ HERO: pinned 3D drive ============ -->
-    <section class="hero" id="top" data-theme="dark" aria-labelledby="hero-title">
+    <section class="hero" id="top" data-theme="navy" aria-labelledby="hero-title">
       <div class="hero__track" data-hero-track>
         <div class="hero__stage" data-hero-stage>
           <canvas class="hero__canvas" data-hero-canvas aria-hidden="true"></canvas>
@@ -133,11 +126,12 @@
           <!-- Intro copy -->
           <div class="hero__intro" data-hero-intro>
             <p class="eyebrow hero__eyebrow"><span class="eyebrow__dot"></span>Psychomotor training &amp; risk reduction</p>
-            <h1 class="hero__title" id="hero-title" data-hero-title>Fleet safety starts behind the wheel.</h1>
+            <h1 class="hero__title" id="hero-title" data-hero-title>Proactively reduce driver risk.</h1>
             <div class="hero__row">
+              <p class="hero__tagline">Because peace of mind matters.</p>
               <p class="hero__lede">Driver Bureau profiles each driver's psychomotor ability, then trains it with an individualised EyeGym programme: a 28% to 55% improvement in harsh braking and acceleration, depending on training logged.</p>
               <div class="hero__ctas">
-                <a class="btn btn--signal" href="https://www.driverib.com/book-a-meeting" data-link="book" data-magnetic><span>Book a meeting</span>
+                <a class="btn btn--brand" href="https://www.driverib.com/book-a-meeting" data-link="book" data-magnetic><span>Book a meeting</span>
                   <svg class="i-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a>
                 <a class="btn btn--ghost" href="#how" data-scroll-to><span>How it works</span></a>
               </div>
@@ -158,8 +152,8 @@
             </div>
             <div class="beat" data-beat="3">
               <p class="beat__kicker">What Driver Bureau sees</p>
-              <h2 class="beat__title">We assess and train the driver.</h2>
-              <p class="beat__text">AI-powered testing of reaction time, visual tracking and risk perception, followed by personalised EyeGym training.</p>
+              <h2 class="beat__title">Fleet safety starts behind the wheel.</h2>
+              <p class="beat__text">We assess and train the driver: AI-powered testing of reaction time, visual tracking and risk perception, followed by personalised EyeGym training.</p>
             </div>
             <div class="beat beat--final" data-beat="4">
               <h2 class="beat__title">Proactive. Personalised. Measurable.</h2>
@@ -176,7 +170,7 @@
     </section>
 
     <!-- ============ BELIEF ============ -->
-    <section class="section belief" id="belief" data-theme="dark" data-rail-section="belief" aria-labelledby="belief-title">
+    <section class="section belief" id="belief" data-theme="navy" data-rail-section="belief" aria-labelledby="belief-title">
       <div class="wrap">
         <p class="label" id="belief-title"><span class="label__line"></span>Our belief</p>
         <p class="belief__statement" data-highlight>
@@ -188,11 +182,17 @@
           <p data-reveal>Driver Bureau is an independent company focused on addressing human error among drivers and operators.</p>
           <p data-reveal>Our cloud-based app profiles a driver's psychomotor ability, then delivers an individualised EyeGym training programme with AI-driven feedback on cognitive and physical performance.</p>
         </div>
+        <ul class="values" aria-label="Our values" data-reveal>
+          <li class="value"><span class="value__num">01</span><span class="value__name">Scientifically proven</span></li>
+          <li class="value"><span class="value__num">02</span><span class="value__name">Result driven</span></li>
+          <li class="value"><span class="value__num">03</span><span class="value__name">Authentic</span></li>
+          <li class="value"><span class="value__num">04</span><span class="value__name">Trusted</span></li>
+        </ul>
       </div>
     </section>
 
     <!-- ============ PROBLEM ============ -->
-    <section class="section problem" id="problem" data-theme="dark" data-rail-section="problem" aria-labelledby="problem-title">
+    <section class="section problem" id="problem" data-theme="white" data-rail-section="problem" aria-labelledby="problem-title">
       <div class="wrap problem__grid">
         <div class="problem__stat">
           <div class="problem__sticky">
@@ -223,7 +223,7 @@
     </section>
 
     <!-- ============ HOW IT WORKS ============ -->
-    <section class="section process" id="how" data-theme="light" data-rail-section="how" aria-labelledby="how-title">
+    <section class="section process" id="how" data-theme="mist" data-rail-section="how" aria-labelledby="how-title">
       <div class="wrap process__intro">
         <p class="label"><span class="label__line"></span>How it works</p>
         <h2 class="h-display" id="how-title" data-split>From assessment to measurable change.</h2>
@@ -301,7 +301,7 @@
         <div class="reaction__copy">
           <p class="label"><span class="label__line"></span>Try it</p>
           <h3 class="h-large">How quick are your reactions?</h3>
-          <p>Tap the pad as soon as it turns yellow. Three attempts, then your average.</p>
+          <p>Tap the pad as soon as it turns white. Three attempts, then your average.</p>
           <p class="reaction__note">This is a single reaction test for fun. Elevate AI assesses response times, visual tracking and risk perception together.</p>
         </div>
         <div class="reaction__device">
@@ -323,7 +323,7 @@
     </section>
 
     <!-- ============ PRODUCTS ============ -->
-    <section class="section products" id="products" data-theme="dark" data-rail-section="products" aria-labelledby="products-title">
+    <section class="section products" id="products" data-theme="white" data-rail-section="products" aria-labelledby="products-title">
       <div class="wrap">
         <div class="section-head">
           <p class="label"><span class="label__line"></span>Products</p>
@@ -376,7 +376,7 @@
     </section>
 
     <!-- ============ RESULTS ============ -->
-    <section class="section results" id="results" data-theme="signal" data-rail-section="results" aria-labelledby="results-title">
+    <section class="section results" id="results" data-theme="blue" data-rail-section="results" aria-labelledby="results-title">
       <div class="wrap">
         <div class="section-head section-head--split">
           <div>
@@ -425,7 +425,7 @@
     </section>
 
     <!-- ============ CASE STUDY ============ -->
-    <section class="section case" id="case-study" data-theme="light" data-rail-section="case-study" aria-labelledby="case-title">
+    <section class="section case" id="case-study" data-theme="white" data-rail-section="case-study" aria-labelledby="case-title">
       <div class="case__track" data-case-track>
         <div class="case__sticky" data-case-sticky>
           <div class="wrap case__layout">
@@ -470,7 +470,7 @@
     </section>
 
     <!-- ============ WHO IT'S FOR ============ -->
-    <section class="section who" id="who" data-theme="dark" data-rail-section="who" aria-labelledby="who-title">
+    <section class="section who" id="who" data-theme="navy" data-rail-section="who" aria-labelledby="who-title">
       <div class="wrap">
         <div class="section-head">
           <p class="label"><span class="label__line"></span>Who it's for</p>
@@ -549,12 +549,12 @@
     <!-- ============ MARQUEE ============ -->
     <div class="marquee" data-marquee aria-hidden="true">
       <div class="marquee__row" data-marquee-row>
-        <span>Reaction time</span><i></i><span>Visual tracking</span><i></i><span>Risk perception</span><i></i><span>Coordination</span><i></i><span>Decision-making</span><i></i><span>Fatigue</span><i></i><span>Situational awareness</span><i></i>
+        <span>Reaction time</span><i><!--logo--></i><span>Visual tracking</span><i><!--logo--></i><span>Risk perception</span><i><!--logo--></i><span>Coordination</span><i><!--logo--></i><span>Decision-making</span><i><!--logo--></i><span>Fatigue</span><i><!--logo--></i><span>Situational awareness</span><i><!--logo--></i>
       </div>
     </div>
 
     <!-- ============ RESOURCES ============ -->
-    <section class="section resources" id="resources" data-theme="light" data-rail-section="resources" aria-labelledby="resources-title">
+    <section class="section resources" id="resources" data-theme="white" data-rail-section="resources" aria-labelledby="resources-title">
       <div class="wrap">
         <div class="section-head section-head--split">
           <div>
@@ -593,7 +593,7 @@
     </section>
 
     <!-- ============ FAQ ============ -->
-    <section class="section faq" id="faq" data-theme="light" data-rail-section="faq" aria-labelledby="faq-title">
+    <section class="section faq" id="faq" data-theme="mist" data-rail-section="faq" aria-labelledby="faq-title">
       <div class="wrap faq__grid">
         <div class="faq__head">
           <p class="label"><span class="label__line"></span>FAQ</p>
@@ -644,7 +644,7 @@
     </section>
 
     <!-- ============ CONTACT / CTA ============ -->
-    <section class="section cta" id="contact" data-theme="dark" data-rail-section="contact" aria-labelledby="cta-title">
+    <section class="section cta" id="contact" data-theme="blue" data-rail-section="contact" aria-labelledby="cta-title">
       <div class="wrap">
         <p class="label"><span class="label__line"></span>Contact</p>
         <h2 class="cta__title" id="cta-title" data-split>Let's talk about your drivers.</h2>
@@ -668,8 +668,15 @@
   </main>
 
   <!-- ============ FOOTER ============ -->
-  <footer class="footer" data-theme="dark">
+  <footer class="footer" data-theme="navy">
     <div class="wrap">
+      <div class="footer__top-row">
+        <a class="footer__brand" href="#top" data-scroll-to aria-label="Driver Bureau, back to top">
+          <span class="footer__mark"><!--logo--></span>
+          <span class="footer__name">Driver Bureau</span>
+        </a>
+        <p class="footer__tagline">Proactively reduce driver risk. Because peace of mind matters.</p>
+      </div>
       <div class="footer__cols">
         <div class="footer__col">
           <p class="footer__h">On this page</p>

@@ -24,8 +24,8 @@ const SHOTS = {
     p0: { theta: 28, phi: 5, dist: 25, fov: 44, shiftX: 0, shiftY: 0.38, focusMix: 0, exposure: 0.96 },
     p1: { theta: 72, phi: 12, dist: 31, fov: 46, shiftY: 0.34, exposure: 1.0 },
     p2: { theta: 150, phi: 46, dist: 52, fov: 48, shiftY: 0.26, focusMix: 0.55, exposure: 1.12 },
-    p3: { theta: 180, phi: 89.4, dist: 80, fov: 50, shiftY: -0.02, focusMix: 1, exposure: 1.32 },
-    p4: { dist: 74 },
+    p3: { theta: 180, phi: 89.4, dist: 108, fov: 50, shiftY: -0.12, focusMix: 1, exposure: 1.32 },
+    p4: { dist: 100 },
     p5: { dist: 200, shiftY: 0.1, exposure: 1.36 },
     p6: { dist: 680, shiftY: 0, exposure: 1.3 },
   },
@@ -164,13 +164,33 @@ export function createHero(ctx) {
         // --- fade into the page
         tl.fromTo(fade, { opacity: 0 }, { opacity: 1, ease: 'power2.in', duration: 0.08 }, 0.92);
 
-        ScrollTrigger.create({
+        const st = ScrollTrigger.create({
           trigger: track,
           start: 'top top',
           end: 'bottom bottom',
           scrub: env.touch ? 0.5 : 0.9,
           animation: tl,
         });
+
+        // Test hook (only when a harness sets window.__DB_DEBUG__): seek the
+        // hero to a progress value and render one frame synchronously.
+        if (window.__DB_DEBUG__) {
+          window.__dbHero = {
+            seek(p, time = 1) {
+              debugPaused = true;
+              st.disable(false);
+              tl.progress(p);
+              if (world) {
+                for (let i = 0; i < 3; i++) world.update(rig, 1 / 30, time + i / 30);
+                updateHud();
+                world.render(1 / 30);
+              }
+            },
+            resume() { debugPaused = false; st.enable(); },
+            world,
+            rig,
+          };
+        }
 
         return () => { tl.kill(); };
       }
@@ -231,6 +251,9 @@ export function createHero(ctx) {
   let perfFrames = 0;
   let perfTime = 0;
   let dpr = env.quality.dpr;
+  // Below ~40 fps, step down: depth of field, then resolution, then AO and
+  // the grass shells, then the last of the resolution
+  let rungs = 0;
   function adaptResolution(dt) {
     perfFrames++;
     perfTime += dt;
@@ -238,19 +261,26 @@ export function createHero(ctx) {
     const avg = perfTime / perfFrames;
     perfFrames = 0;
     perfTime = 0;
-    if (avg > 1 / 42 && dpr > 1) {
+    if (avg <= 1 / 40) return;
+    rungs++;
+    const lowerDpr = () => {
+      if (dpr <= 1) return false;
       dpr = Math.max(1, dpr - 0.25);
       world.setPixelRatio(dpr);
       world.setSize(width, height);
-    }
+      return true;
+    };
+    if (rungs === 2 && lowerDpr()) return;
+    if (!world.degrade()) lowerDpr();
   }
 
+  let debugPaused = false;
   function tick(time, deltaMs) {
-    if (!world || !active) return;
+    if (!world || !active || debugPaused) return;
     const dt = Math.min(deltaMs / 1000, 0.05);
     world.update(rig, dt, time);
     updateHud();
-    world.render();
+    world.render(dt);
     adaptResolution(dt);
   }
 

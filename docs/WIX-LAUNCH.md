@@ -1,8 +1,9 @@
 # Launching the redesign on Wix
 
 The site is one long, scroll-driven page. On Wix it runs as a **Custom Element**
-(`<driver-bureau-site>`): a single JavaScript file that contains the page,
-its styles, GSAP, three.js and Lenis. On the live site it takes over the full
+(`<driver-bureau-site>`): a single JavaScript file (about 1.2 MB) that
+contains the page, its styles, GSAP, three.js, the post-processing libraries
+and Lenis. The brand font, Montserrat, loads from Google Fonts. On the live site it takes over the full
 screen and scrolls inside its own layer, so nothing in Wix's page layout
 (section heights, transforms, overflow) can break the pinned animations.
 
@@ -76,7 +77,8 @@ working. To point a link somewhere else without rebuilding, use the element's
 
 ## Option B: Custom Element from a server URL
 
-If you would rather not use Velo, host `driver-bureau-element.js` on any HTTPS
+If you would rather not use Velo (or the code editor is slow with a file this
+size), host `driver-bureau-element.js` on any HTTPS
 static host (Netlify, Vercel, GitHub Pages, S3…). Then in step 4 choose
 **Server URL** and paste the full `https://…/driver-bureau-element.js` link.
 The Wix Help Center notes the URL must be HTTPS or it won't show on the live
@@ -123,4 +125,4 @@ Stats, product names and FAQ answers are plain HTML in that file.
 | Placeholder box on the live site | Site lacks Premium/connected domain, or the element is inside an iframe. Set `mode="live"` via Velo code. |
 | Nothing shows at all | Tag name doesn't match `driver-bureau-site`, or the file wasn't saved in `public/custom-elements/`. |
 | Static hero instead of the 3D scene | The device has WebGL turned off, or the visitor asked for reduced motion. This is intended. |
-| Jerky animation on an old laptop | The scene lowers its resolution automatically after a couple of seconds. |
+| Jerky animation on an old laptop | The scene steps down automatically after a couple of seconds (depth of field, resolution, ambient occlusion). |

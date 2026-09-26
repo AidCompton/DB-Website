@@ -1,12 +1,16 @@
 // Builds the world and exposes a tiny API the scroll timeline drives:
 //   world.update(rig, dt, time) -> places truck, traffic, camera, light
-//   world.render()
+//   world.render(dt)
 import * as THREE from 'three';
-import { createRoadPath, createRoadMeshes, ROAD } from './road.js';
-import { createHeightField, createTerrain, createVegetation, createFarmland, addCloudShadows } from './terrain.js';
-import { createSky, SUN_DIR } from './sky.js';
-import { createTruck } from './truck.js';
+import { CSM } from 'three/examples/jsm/csm/CSM.js';
+import { atmosphere } from './atmosphere.js';
+import { createRoadPath, createRoadMeshes, createGrass, createGrassShells, ROAD } from './road.js';
+import { createHeightField, createTerrain, createFarmland, groundPatch, scatter, createRocks, createHouses } from './terrain.js';
+import { createFoliageMaterials, createForest } from './foliage.js';
+import { createSky, SUN_DIR, skyBaseColor } from './sky.js';
+import { createTruck, RIG } from './truck.js';
 import { createTraffic } from './traffic.js';
+import { createPost } from './post.js';
 import * as T from './textures.js';
 import { clamp, lerp, smoothstep } from './noise.js';
 
@@ -17,40 +21,90 @@ const pause = () => new Promise((r) => setTimeout(r, 16));
 export const TRUCK_SPEED = 22; // m/s, used to convert travel into "virtual seconds"
 export const DRIVE_DISTANCE = 480; // metres covered over the whole hero scroll
 
+// The livery is painted with Montserrat; make sure the weights are ready
+async function brandFonts() {
+  if (!document.fonts?.load) return;
+  const loads = ['700 64px Montserrat', '600 64px Montserrat', '500 64px Montserrat'].map((f) => document.fonts.load(f));
+  await Promise.race([Promise.all(loads), new Promise((r) => setTimeout(r, 2500))]).catch(() => {});
+}
+
 export async function createWorld(canvas, quality, onProgress = () => {}) {
   const renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: true,
+    antialias: false,
     alpha: false,
     stencil: false,
+    depth: true,
     powerPreference: 'high-performance',
   });
   renderer.setPixelRatio(quality.dpr);
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.96;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMappingExposure = 1;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
-  renderer.setClearColor(0x0d0f12, 1);
+  renderer.setClearColor(0x0e243e, 1);
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(30, 1, 0.3, 5200);
+  const camera = new THREE.PerspectiveCamera(30, 1, 0.3, 6000);
+  await brandFonts();
+
+  // The sun: cascaded shadow maps, crisp around the truck, long golden-hour
+  // shadows across the landscape. Splits as fractions of maxFar.
+  const high = quality.tier === 'high';
+  const splits = high ? [0.018, 0.08, 0.3, 1] : [0.03, 0.2, 1];
+  const csm = new CSM({
+    camera,
+    parent: scene,
+    cascades: splits.length,
+    maxFar: 1600,
+    mode: 'custom',
+    customSplitsCallback: (n, near, far, target) => splits.forEach((v) => target.push(v)),
+    shadowMapSize: high ? 2048 : 1024,
+    lightDirection: SUN_DIR.clone().negate(),
+    lightIntensity: 6.0,
+    lightNear: 1,
+    lightFar: 4000,
+    lightMargin: 400,
+    shadowBias: -0.00015,
+  });
+  csm.fade = true;
+  // Keep our off-axis lens shift: CSM would otherwise reset the projection
+  csm._initCascades = function () {
+    this.mainFrustum.setFromProjectionMatrix(this.camera.projectionMatrix, this.maxFar);
+    this.mainFrustum.split(this.breaks, this.frustums);
+  };
+  csm.lights.forEach((l, i) => {
+    l.color.set(0xffd6ab);
+    l.shadow.normalBias = 0.02 + i * 0.03;
+    l.shadow.radius = 2;
+    if (i >= 2) l.shadow.autoUpdate = false; // far cascades refresh every other frame
+  });
+  atmosphere.csm = csm;
+  let frame = 0;
 
   const tex = {
-    asphalt: T.asphaltTexture(renderer),
+    asphalt: T.asphaltDetail(renderer),
+    asphaltWear: T.asphaltWear(renderer),
+    markingWear: T.markingWear(renderer),
     gravel: T.gravelTexture(renderer),
-    grass: T.grassTexture(renderer),
-    sideLeft: T.trailerSideTexture(renderer, { frontLeft: true }),
-    sideRight: T.trailerSideTexture(renderer, { frontLeft: false }),
-    roof: T.trailerRoofTexture(renderer),
-    rear: T.trailerRearTexture(renderer),
-    badge: T.badgeTexture(renderer),
+    grass: T.grassDetail(renderer),
+    soil: T.soilDetail(renderer),
+    grassBlades: T.grassBlades(renderer),
+    grassFur: T.grassFur(renderer),
+    leafAcacia: T.leafCluster(renderer, 'acacia'),
+    leafGum: T.leafCluster(renderer, 'gum'),
+    leafBush: T.leafCluster(renderer, 'bush'),
+    barkAcacia: T.barkTexture(renderer, 'acacia'),
+    barkGum: T.barkTexture(renderer, 'gum'),
+    tyre: T.tyreTextures(renderer),
+    grille: T.grilleTextures(renderer),
     glow: T.glowTexture(renderer),
     streak: T.streakTexture(renderer),
     beam: T.beamTexture(renderer),
     cloud: T.cloudTexture(renderer),
   };
-  onProgress(0.3);
+  tex.concrete = tex.soil;
+  onProgress(0.25);
   await pause();
 
   const path = createRoadPath();
@@ -58,77 +112,82 @@ export async function createWorld(canvas, quality, onProgress = () => {}) {
   const cloudUniforms = {
     uCloud: { value: tex.cloud },
     uCloudOffset: { value: new THREE.Vector2(0.13, 0.41) },
-    uCloudAmount: { value: 0.16 },
+    uCloudAmount: { value: 0.22 },
   };
 
-  const sky = createSky();
+  // ---------------------------------------------------------------- sky + air
+  const sky = createSky({ octaves: quality.tier === 'high' ? 6 : 4 });
   scene.add(sky.mesh);
-  scene.fog = new THREE.Fog(0xc9a58c, 160, 1600);
-
-  const road = createRoadMeshes(path, tex, quality);
-  road.traverse((o) => {
-    if (o.isMesh && !o.isInstancedMesh && o.material.isMeshStandardMaterial) addCloudShadows(o.material, cloudUniforms);
-  });
-  scene.add(road);
-  onProgress(0.42);
-  await pause();
+  const hazeAway = skyBaseColor(new THREE.Vector3(-SUN_DIR.z, 0.02, SUN_DIR.x).normalize());
+  const hazeSun = skyBaseColor(new THREE.Vector3(SUN_DIR.x, 0.03, SUN_DIR.z).normalize());
+  scene.fog = new THREE.Fog(hazeAway.clone(), 200, 2400);
+  atmosphere.uniforms.uSunFogColor.value.copy(hazeSun).multiplyScalar(0.9);
+  atmosphere.uniforms.uSunDirW.value.copy(SUN_DIR);
+  atmosphere.uniforms.uFogDensity.value = 0.0006;
+  atmosphere.uniforms.uFogFalloff.value = 0.0062;
 
   const farmland = createFarmland(path, renderer);
   const terrain = createTerrain(path, height, tex, quality, cloudUniforms, farmland);
   scene.add(terrain);
-  onProgress(0.58);
+  const surface = terrain.userData.surface;
+  onProgress(0.4);
   await pause();
 
-  scene.add(createVegetation(path, height, quality, farmland));
-  onProgress(0.68);
+  const groundCloud = groundPatch(cloudUniforms);
+  const road = createRoadMeshes(path, tex, quality, groundCloud);
+  scene.add(road);
+  const grass = createGrass(path, surface, tex, quality);
+  const sward = createGrassShells(path, surface, tex, quality);
+  scene.add(grass, sward);
+  onProgress(0.52);
   await pause();
 
-  const truck = createTruck(tex);
-  scene.add(truck.tractor, truck.trailer);
+  const spots = scatter(path, surface, quality, farmland);
+  const foliageMats = createFoliageMaterials(tex);
+  scene.add(createForest(foliageMats, spots, quality));
+  scene.add(createRocks(spots.rocks, tex));
+  scene.add(createHouses(spots.houses, surface));
+  onProgress(0.64);
+  await pause();
+
+  const truck = createTruck(renderer, tex);
+  scene.add(truck.tractor, truck.trailer, truck.wheelGroup);
   const traffic = createTraffic(path, tex);
   scene.add(traffic.group);
+  onProgress(0.72);
+  await pause();
 
   // ---------------------------------------------------------------- light
-  const hemi = new THREE.HemisphereLight(0xb4c3da, 0x4f4232, 1.05);
+  const hemi = new THREE.HemisphereLight(0x9fb4d6, 0x5a4a34, 0.12);
   scene.add(hemi);
-  const sun = new THREE.DirectionalLight(0xffc48a, 3.1);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(quality.shadow, quality.shadow);
-  sun.shadow.bias = -0.0003;
-  sun.shadow.normalBias = 0.04;
-  sun.shadow.radius = 2.5;
-  sun.shadow.camera.near = 1;
-  sun.shadow.camera.far = 1400;
-  scene.add(sun, sun.target);
 
-  // Image-based lighting from the same sky, for paint and glass reflections
+  // Image-based lighting from the same sky (clouds included) for paint,
+  // glass and chrome reflections and for soft skylight everywhere
   const pmrem = new THREE.PMREMGenerator(renderer);
   const envScene = new THREE.Scene();
-  envScene.add(createSky().mesh);
-  const envRT = pmrem.fromScene(envScene, 0.02, 0.1, 6000);
+  const envSky = createSky({ octaves: 4, sunDisk: 8 });
+  envScene.add(envSky.mesh);
+  const envRT = pmrem.fromScene(envScene, 0.015, 0.1, 8000);
   scene.environment = envRT.texture;
   scene.environmentIntensity = 0.6;
   pmrem.dispose();
-  onProgress(0.8);
+  envSky.mesh.geometry.dispose();
+  envSky.mesh.material.dispose();
+
+  const post = createPost(renderer, scene, camera, quality);
+  onProgress(0.82);
   await pause();
 
   // ---------------------------------------------------------------- state
-  const state = {
-    s: path.start, // tractor arc length
-    prevS: path.start,
-    speed: 0,
-    distance: 0,
-  };
-
+  const state = { s: path.start, prevS: path.start, speed: 0, accel: 0 };
   const v1 = new THREE.Vector3();
   const v2 = new THREE.Vector3();
   const focus = new THREE.Vector3();
-  const smoothFocus = new THREE.Vector3();
   const heading = new THREE.Vector3();
   const left = new THREE.Vector3();
   const camUp = new THREE.Vector3();
   const fr = {};
-  const fogColor = new THREE.Color();
+  const trailerAxle = -(RIG.trailerAxles[1]);
 
   function laneFrame(s, lat) {
     path.frameAt(s, fr);
@@ -143,8 +202,8 @@ export async function createWorld(canvas, quality, onProgress = () => {}) {
     truck.tractor.position.set(a.x, 0.02, a.z);
     truck.tractor.rotation.set(0, yaw, 0);
 
-    // Trailer: kingpin rides on the fifth wheel, axles track the lane behind
-    const axle = laneFrame(s - 10.4, lat);
+    // Trailer: kingpin rides on the fifth wheel, the axle group tracks the lane
+    const axle = laneFrame(s - trailerAxle, lat);
     const tYaw = Math.atan2(a.x - axle.x, a.z - axle.z);
     truck.trailer.position.set(a.x, 0.02, a.z);
     truck.trailer.rotation.set(0, tYaw, 0);
@@ -154,23 +213,22 @@ export async function createWorld(canvas, quality, onProgress = () => {}) {
     const moving = clamp(spd / 20, 0, 1);
     const idle = 1 - moving;
     const curve = Math.atan2(Math.sin(tYaw - yaw), Math.cos(tYaw - yaw));
-    truck.body.position.y = Math.sin(time * 47) * 0.004 * idle + Math.sin(time * 5.3 + s * 0.4) * 0.018 * moving;
-    truck.body.rotation.z = clamp(curve * 0.35, -0.03, 0.03) * moving;
-    truck.body.rotation.x = clamp(-state.accel * 0.0006, -0.012, 0.012);
-    truck.trailerBody.position.y = Math.sin(time * 4.1 + s * 0.3) * 0.012 * moving;
+    truck.body.position.y = Math.sin(time * 47) * 0.003 * idle + (Math.sin(time * 5.3 + s * 0.4) * 0.012 + Math.sin(time * 9.1 + s * 1.3) * 0.004) * moving;
+    truck.body.rotation.z = clamp(curve * 0.35, -0.025, 0.025) * moving + Math.sin(time * 3.1 + s * 0.2) * 0.002 * moving;
+    truck.body.rotation.x = clamp(-state.accel * 0.0005, -0.01, 0.01);
+    truck.trailerBody.position.y = Math.sin(time * 4.1 + s * 0.3) * 0.01 * moving;
+    truck.trailerBody.rotation.z = Math.sin(time * 2.3 + s * 0.15) * 0.0025 * moving;
 
-    // Wheels roll with distance travelled
-    const roll = (s - path.start) / 0.52;
-    for (const w of truck.wheels) w.rotation.x = roll;
+    // Wheels roll with distance travelled; blur with angular speed
+    truck.updateWheels((s - path.start) / RIG.wheelR, spd / RIG.wheelR);
   }
 
   function updateCamera(rig, time) {
     const tr = truck.tractor;
     // Focus: the cab at road level, the whole rig from the air
-    tr.localToWorld(v1.set(0, 2.25, 3.3));
-    tr.localToWorld(v2.set(0, 1.8, -4.2));
+    tr.localToWorld(v1.set(0, 2.3, 3.4));
+    tr.localToWorld(v2.set(0, 1.9, -4.4));
     focus.copy(v1).lerp(v2, rig.focusMix);
-    smoothFocus.copy(focus);
 
     // Camera basis from a smoothed road heading, so the drone doesn't twitch
     path.frameAt(state.s + 14, fr);
@@ -183,23 +241,23 @@ export async function createWorld(canvas, quality, onProgress = () => {}) {
     const ph = rig.phi * DEG;
     const d = rig.dist + rig.introDist;
     camera.position
-      .copy(smoothFocus)
+      .copy(focus)
       .addScaledVector(left, Math.sin(th) * Math.cos(ph) * d)
       .addScaledVector(UP, Math.sin(ph) * d + rig.introLift)
       .addScaledVector(heading, Math.cos(th) * Math.cos(ph) * d);
 
-    // Hover drift: a breath at ground level, a drone's sway in the air
+    // Hand-held breath at ground level, a drone's sway in the air
     const alt = camera.position.y;
-    const amp = 0.03 + smoothstep(4, 80, alt) * 0.9;
-    camera.position.x += Math.sin(time * 0.53) * amp;
-    camera.position.y += Math.sin(time * 0.71 + 1.3) * amp * 0.5;
+    const amp = 0.025 + smoothstep(4, 80, alt) * 0.9;
+    camera.position.x += Math.sin(time * 0.53) * amp + Math.sin(time * 1.9) * 0.006;
+    camera.position.y += Math.sin(time * 0.71 + 1.3) * amp * 0.5 + Math.sin(time * 2.3) * 0.004;
     camera.position.z += Math.cos(time * 0.37) * amp;
-    if (camera.position.y < 0.6) camera.position.y = 0.6;
+    if (camera.position.y < 0.7) camera.position.y = 0.7;
 
     const topDown = smoothstep(55, 86, rig.phi);
     camUp.copy(UP).lerp(heading, topDown).normalize();
     camera.up.copy(camUp);
-    camera.lookAt(smoothFocus);
+    camera.lookAt(focus);
 
     camera.fov = rig.fov;
     camera.updateProjectionMatrix();
@@ -209,32 +267,24 @@ export async function createWorld(canvas, quality, onProgress = () => {}) {
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
   }
 
-  function updateLightAndFog(dt) {
+  function updateLightAndFog(dt, time) {
     const alt = camera.position.y;
-    const half = clamp(60 + alt * 0.95, 60, 360);
-    const sc = sun.shadow.camera;
-    if (sc.right !== half) {
-      sc.left = -half; sc.right = half; sc.top = half; sc.bottom = -half;
-      sc.updateProjectionMatrix();
-    }
-    // Centre the shadow map on what the camera sees, snapped to texels
-    camera.getWorldDirection(v1);
-    v1.y = 0;
-    const lean = alt < 20 ? half * 0.45 : 0;
-    focus.copy(smoothFocus).addScaledVector(v1.normalize(), lean);
-    const texel = (half * 2) / quality.shadow;
-    focus.x = Math.round(focus.x / texel) * texel;
-    focus.z = Math.round(focus.z / texel) * texel;
-    sun.target.position.copy(focus);
-    sun.position.copy(focus).addScaledVector(SUN_DIR, 600);
+    camera.updateMatrixWorld();
+    csm.updateFrustums();
+    csm.update();
+    frame++;
+    for (let i = 2; i < csm.lights.length; i++) csm.lights[i].shadow.needsUpdate = frame < 4 || (frame + i) % 2 === 0;
+    grass.userData.setScale(1 - smoothstep(6, 16, alt));
+    sward.userData.setScale(1 - smoothstep(10, 24, alt));
 
-    scene.fog.near = 170 + alt * 1.2;
-    scene.fog.far = 1700 + alt * 2.6;
-    sky.fogColorFor(camera, fogColor);
-    scene.fog.color.copy(fogColor);
+    // Plain fog (sprites, lines) roughly matches the height fog
+    scene.fog.near = 220 + alt * 1.4;
+    scene.fog.far = 2600 + alt * 3;
 
     cloudUniforms.uCloudOffset.value.x += dt * 0.0035;
     cloudUniforms.uCloudOffset.value.y += dt * 0.0016;
+    sky.uniforms.uTime.value = time;
+    foliageMats.shared.uTime.value = time;
   }
 
   function update(rig, dt, time) {
@@ -249,29 +299,43 @@ export async function createWorld(canvas, quality, onProgress = () => {}) {
     placeTruck(s, dt, time);
     traffic.update(s, (s - path.start) / TRUCK_SPEED, path.start);
     updateCamera(rig, time);
-    updateLightAndFog(dt);
-    renderer.toneMappingExposure = rig.exposure ?? 0.96;
+    updateLightAndFog(dt, time);
+    renderer.toneMappingExposure = (rig.exposure ?? 1) * 0.8;
+    // Depth of field only at road level; gone once the drone climbs
+    post.setFocus(camera.position.distanceTo(focus), 14 + rig.dist * 0.4, 1.8 * (1 - smoothstep(9, 24, rig.phi)));
 
     // Lens glows only read when the lamps face the camera
     const yaw = truck.tractor.rotation.y;
-    truck.tractor.localToWorld(v1.set(0, 1.4, 4.7));
+    truck.tractor.localToWorld(v1.set(0, 1.4, 4.8));
     v2.copy(camera.position).sub(v1).normalize();
     const facing = v2.x * Math.sin(yaw) + v2.z * Math.cos(yaw);
     truck.setLights(rig.lights, clamp(facing, 0, 1), clamp(-facing, 0, 1));
   }
 
-  function render() {
-    renderer.render(scene, camera);
+  function render(dt = 0.016) {
+    post.render(dt);
   }
 
   function setSize(w, h) {
     renderer.setSize(w, h, false);
+    post.setSize(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
   }
 
   function setPixelRatio(dpr) {
     renderer.setPixelRatio(dpr);
+  }
+
+  // Quality ladder for slow devices (the hero also lowers resolution)
+  const ladder = [
+    () => post.disable('dof'),
+    () => post.disable('ao'),
+    () => { const on = sward.visible; sward.userData.setScale(0); sward.userData.setScale = () => {}; return on; },
+  ];
+  function degrade() {
+    while (ladder.length) if (ladder.shift()()) return true;
+    return false;
   }
 
   // Project the cab's bounding box to a screen rectangle (CSS pixels)
@@ -299,7 +363,7 @@ export async function createWorld(canvas, quality, onProgress = () => {}) {
   }
 
   async function warmup() {
-    const rig = { travel: 0, theta: 36, phi: 4, dist: 15, fov: 30, focusMix: 0, shiftX: 0.3, shiftY: 0, introDist: 0, introLift: 0, lights: 1 };
+    const rig = { travel: 0, theta: 36, phi: 4, dist: 17, fov: 30, focusMix: 0, shiftX: 0.3, shiftY: 0, introDist: 0, introLift: 0, lights: 1, exposure: 1 };
     update(rig, 0.016, 0);
     if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
     render();
@@ -307,14 +371,20 @@ export async function createWorld(canvas, quality, onProgress = () => {}) {
   }
 
   function dispose() {
+    csm.dispose();
+    atmosphere.csm = null;
+    post.dispose();
     renderer.dispose();
     envRT.dispose();
     scene.traverse((o) => {
       if (o.geometry) o.geometry.dispose();
       if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => m.dispose());
     });
-    Object.values(tex).forEach((t) => t.dispose());
+    Object.values(tex).forEach((t) => {
+      if (t?.isTexture) t.dispose();
+      else if (t && typeof t === 'object') Object.values(t).forEach((x) => x?.isTexture && x.dispose());
+    });
   }
 
-  return { renderer, scene, camera, path, truck, state, update, render, setSize, setPixelRatio, cabRect, warmup, dispose };
+  return { renderer, scene, camera, path, truck, state, post, csm, hemi, update, render, setSize, setPixelRatio, degrade, cabRect, warmup, dispose };
 }

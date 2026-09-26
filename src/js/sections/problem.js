@@ -1,5 +1,5 @@
-// "The gap": the 90% figure counts up and stretches from condensed to
-// expanded as the section arrives; the three cards stack on top of each other.
+// "The gap": the 90% figure counts up and gains weight (Montserrat's variable
+// weight axis) as the section arrives; the three cards stack on top of each other.
 import { gsap } from 'gsap';
 
 export function initProblem(ctx) {
@@ -19,7 +19,7 @@ export function initProblem(ctx) {
       scrollTrigger: { trigger: section, start: 'top 80%', end: 'top 10%', scrub: 1 },
     })
       .fromTo(o, { v: 0 }, { v: 90, ease: 'power1.out', onUpdate: () => { num.textContent = String(Math.round(o.v)); } }, 0)
-      .fromTo(wrap, { fontStretch: '62%' }, { fontStretch: '125%', ease: 'power2.inOut' }, 0);
+      .fromTo(wrap, { fontWeight: 200 }, { fontWeight: 700, ease: 'power2.inOut' }, 0);
   }
 
   cards.forEach((card, i) => {

@@ -10,15 +10,29 @@ import * as esbuild from 'esbuild';
 import { mkdir, readFile, writeFile, copyFile } from 'node:fs/promises';
 import { watch } from 'node:fs';
 import path from 'node:path';
+import { LOGO_PIECES, LOGO_VIEWBOX, BRAND_BLUE } from './src/js/brand.js';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname);
 const r = (...p) => path.join(ROOT, ...p);
 
-const FONTS_URL =
-  'https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Martian+Mono:wdth,wght@75..112.5,100..800&display=swap';
+// Brand typeface (Driver Bureau brand guidelines): Montserrat
+const FONTS_URL = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&display=swap';
 const TITLE = 'Driver Bureau | Fleet safety through psychomotor training';
 const DESCRIPTION =
   "Driver Bureau profiles each driver's psychomotor ability and trains it with individualised EyeGym programmes, for a 28% to 55% improvement in harsh braking and acceleration.";
+
+// Inline SVG of the monogram. Each of the four pieces is its own path so the
+// preloader can assemble it.
+const logoSvg = () =>
+  `<svg class="logo-mark" viewBox="${LOGO_VIEWBOX.join(' ')}" aria-hidden="true" focusable="false">` +
+  Object.entries(LOGO_PIECES).map(([k, d]) => `<path data-piece="${k}" d="${d}"/>`).join('') +
+  '</svg>';
+const withLogos = (html) => html.replace(/<!--logo-->/g, logoSvg());
+
+const FAVICON = `data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 ${LOGO_VIEWBOX[2] + 48} ${LOGO_VIEWBOX[3] + 48}">` +
+    `<path fill="${BRAND_BLUE}" fill-rule="evenodd" d="${Object.values(LOGO_PIECES).join('')}"/></svg>`
+)}`;
 
 const HEAD_FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,9 +46,9 @@ const HOST_CSS = `
   overflow-x: hidden; overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  background: #0d0f12;
+  background: #0e243e;
   scrollbar-width: thin;
-  scrollbar-color: #ffc21a transparent;
+  scrollbar-color: #8bb3e4 transparent;
   outline: none;
 }
 .db-scroller.lenis-stopped { overflow: hidden; }
@@ -79,7 +93,8 @@ function page({ css, js, markup, cssHref, jsSrc, embed = false }) {
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${TITLE}</title>
 <meta name="description" content="${DESCRIPTION}">
-<meta name="theme-color" content="#0d0f12">
+<meta name="theme-color" content="#0e243e">
+<link rel="icon" href="${FAVICON}">
 ${embed ? '<base target="_top">\n' : ''}${HEAD_FONTS}
 ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : `<style>${css}</style>`}
 </head>
@@ -147,7 +162,7 @@ ${js}
   var PLACEHOLDER =
     '<style>:host{display:block;height:100%;min-height:120px}' +
     '.ph{box-sizing:border-box;height:100%;min-height:120px;display:grid;place-content:center;gap:8px;padding:24px;' +
-    'background:#0d0f12;color:#edece8;font:500 13px/1.5 system-ui,sans-serif;text-align:center;border:2px dashed #ffc21a}' +
+    'background:#0e243e;color:#fff;font:500 13px/1.5 Montserrat,system-ui,sans-serif;text-align:center;border:2px dashed #8bb3e4}' +
     '.ph b{font-size:15px;letter-spacing:.04em}.ph span{opacity:.7}</style>' +
     '<div class="ph"><b>DRIVER BUREAU</b><span>Full-screen scroll experience. It takes over the page on the published site.</span>' +
     '<span>To see it in Preview, set mode="live" from page code.</span></div>';
@@ -232,7 +247,7 @@ async function build() {
     bundleCss(r('src/styles/standalone.css')),
     readFile(r('src/site.html'), 'utf8'),
   ]);
-  const markup = markupRaw.trim();
+  const markup = withLogos(markupRaw.trim());
   const pageCss = standaloneCss + css;
   const stamp = new Date().toISOString().slice(0, 10);
 

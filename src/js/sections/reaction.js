@@ -35,7 +35,7 @@ export function initReaction(ctx) {
   }
 
   function arm() {
-    set('wait', 'Wait…', 'Tap when it turns yellow');
+    set('wait', 'Wait…', 'Tap when it turns white');
     const delay = 1200 + Math.random() * 2300;
     timer = window.setTimeout(() => {
       goAt = performance.now();
@@ -46,8 +46,8 @@ export function initReaction(ctx) {
   function press() {
     if (state === 'wait') {
       window.clearTimeout(timer);
-      set('early', 'Too soon', 'Wait for yellow · tap to retry');
-      live.textContent = 'Too soon. Wait for the pad to turn yellow.';
+      set('early', 'Too soon', 'Wait for white · tap to retry');
+      live.textContent = 'Too soon. Wait for the pad to turn white.';
       pop();
       return;
     }

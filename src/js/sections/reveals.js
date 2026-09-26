@@ -12,9 +12,12 @@ export function initReveals(ctx) {
   const fit = () => {
     if (!word) return;
     word.style.fontSize = '100px';
-    const w = word.scrollWidth;
-    const target = word.parentElement.clientWidth;
-    if (w > 0) word.style.fontSize = `${Math.floor((100 * target) / w * 0.995)}px`;
+    word.style.width = 'max-content';
+    const w = word.getBoundingClientRect().width;
+    word.style.width = '';
+    const cs = getComputedStyle(word.parentElement);
+    const target = word.parentElement.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    if (w > 0) word.style.fontSize = `${Math.floor(((100 * target) / w) * 0.99)}px`;
   };
   fit();
   ctx.onResize(fit);
