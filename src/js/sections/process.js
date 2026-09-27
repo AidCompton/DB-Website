@@ -107,7 +107,7 @@ function initArt(section) {
     whileVisible(profile.ownerSVGElement, anim);
   }
 
-  // 03 Train: an EyeGym-style drill, dots light up in quick succession
+  // 03 Train: a reaction drill, dots light up in quick succession
   const grid = section.querySelector('[data-train-grid]');
   if (grid) {
     const cells = [];

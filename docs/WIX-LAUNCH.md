@@ -56,7 +56,7 @@ Check the plan in your Wix dashboard before you start.
 6. **Page settings.** Set the page's SEO title and description in Wix
    (Page Settings → SEO basics). Suggested:
    - Title: `Driver Bureau | Fleet safety through psychomotor training`
-   - Description: `Driver Bureau profiles each driver's psychomotor ability and trains it with individualised EyeGym programmes, for a 28% to 55% improvement in harsh braking and acceleration.`
+   - Description: `Driver Bureau profiles each driver's psychomotor ability and trains it with individualised programmes, for a 28% to 55% improvement in harsh braking and acceleration.`
 7. **Publish**, then test on a phone and a desktop (see checklist below).
 
 **Going live.** When the test page passes the checklist, remove its password,

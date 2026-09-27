@@ -9,7 +9,7 @@ carriageway through the KZN midlands in late-afternoon light. As you scroll,
 the camera orbits the truck, rises into a top-down drone shot and follows it
 down the highway. A heads-up display first shows what telematics sees (a log
 of harsh-braking events), then what Driver Bureau sees (the driver's
-psychomotor profile, an area of concern and an EyeGym programme). The scene
+psychomotor profile, an area of concern and a training programme). The scene
 then pulls away and fades into the content.
 
 The rendering aims for a photographic look: physically based materials

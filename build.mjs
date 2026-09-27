@@ -19,7 +19,7 @@ const r = (...p) => path.join(ROOT, ...p);
 const FONTS_URL = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&display=swap';
 const TITLE = 'Driver Bureau | Fleet safety through psychomotor training';
 const DESCRIPTION =
-  "Driver Bureau profiles each driver's psychomotor ability and trains it with individualised EyeGym programmes, for a 28% to 55% improvement in harsh braking and acceleration.";
+  "Driver Bureau profiles each driver's psychomotor ability and trains it with individualised programmes, for a 28% to 55% improvement in harsh braking and acceleration.";
 
 // Inline SVG of the monogram. Each of the four pieces is its own path so the
 // preloader can assemble it.
