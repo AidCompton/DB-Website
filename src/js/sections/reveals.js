@@ -85,15 +85,17 @@ export function initReveals(ctx) {
     });
   }
 
-  // Products and stats arrive with a stagger
+  // Products arrive with a stagger. The row beneath them comes last with the
+  // same lift, so a card on its way up never passes over it.
   const products = qa('[data-product]');
   if (products.length) {
-    gsap.from(products, {
+    gsap.from([...products, ...qa('.products__foot')], {
       y: 70,
       autoAlpha: 0,
       duration: 1.2,
       stagger: 0.12,
       ease: 'expo.out',
+      clearProps: 'transform',
       scrollTrigger: { trigger: products[0].parentElement, start: 'top 80%', once: true },
     });
   }

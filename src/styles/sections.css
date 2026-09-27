@@ -298,9 +298,13 @@
   background: var(--mist);
   isolation: isolate;
   overflow: hidden;
-  transition: transform 0.6s var(--ease-out), box-shadow 0.6s var(--ease-out);
+  /* The hover lift uses 'translate', not 'transform': GSAP animates the
+     cards' transform as they arrive, and a CSS transition on the same
+     property made it record the wrong end point (cards stuck 70px low,
+     over the row beneath) */
+  transition: translate 0.6s var(--ease-out), box-shadow 0.6s var(--ease-out);
 }
-.db .product:hover { transform: translateY(-6px); box-shadow: 0 30px 60px -36px rgba(14, 36, 62, 0.45); }
+.db .product:hover { translate: 0 -6px; box-shadow: 0 30px 60px -36px rgba(14, 36, 62, 0.45); }
 .db .product--featured { background: var(--brand); color: var(--white); }
 .db .product__top { display: grid; gap: 14px; }
 .db .product__tag {
