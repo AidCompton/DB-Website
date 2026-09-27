@@ -18,7 +18,7 @@ export function createPreloader(root, env) {
   const render = () => {
     shown.v += (target - shown.v) * 0.1;
     if (target - shown.v < 0.002) shown.v = target;
-    count.textContent = String(Math.round(shown.v * 100)).padStart(3, '0');
+    count.textContent = String(Math.round(shown.v * 100));
     bar.style.transform = `scaleX(${shown.v.toFixed(4)})`;
   };
   gsap.ticker.add(render);

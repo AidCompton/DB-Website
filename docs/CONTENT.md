@@ -82,7 +82,9 @@ launch. Items marked **VERIFY** are the ones I'm least sure about.
 9. **Truck.** South African traffic keeps left and cab-overs are
    right-hand drive; the scene follows both. The truck isn't modelled on a
    particular manufacturer and carries no manufacturer badges. The livery
-   shows the monogram, the name, the tagline and `driverib.com`. The front
+   shows the monogram and name with "Because Peace of Mind Matters"
+   underneath, and a blue rear block (sides and roof, lined up) with
+   `driverib.com`. The front
    number plate (`ND 245-99`) is made up; change or remove it in
    `src/js/hero/livery.js` if you prefer.
 10. **Tagline and values.** "Proactively reduce driver risk. Because peace of

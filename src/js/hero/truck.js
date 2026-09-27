@@ -549,6 +549,8 @@ function buildChassis(b, M) {
 }
 
 // ------------------------------------------------------------------ trailer
+// The roof decal stops just inside the shell's rounded edges (0.035 m radius)
+const ROOF_SPAN = 1 - 0.07 / (RIG.trailerFront - RIG.trailerRear);
 function buildTrailer(b, M, tBody) {
   const L = RIG.trailerFront - RIG.trailerRear;
   const zc = (RIG.trailerFront + RIG.trailerRear) / 2;
@@ -575,7 +577,7 @@ function buildTrailer(b, M, tBody) {
   shell.castShadow = shell.receiveShadow = true;
   tBody.add(shell);
   // Roof decal (canvas x runs front -> rear; canvas top faces the truck's right)
-  const roofGeo = new THREE.PlaneGeometry(L - 0.2, 2.45);
+  const roofGeo = new THREE.PlaneGeometry(L * ROOF_SPAN, 2.48);
   roofGeo.applyMatrix4(new THREE.Matrix4().set(0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1));
   roofGeo.rotateY(Math.PI);
   const roof = new THREE.Mesh(roofGeo, M.roofDecal);
@@ -637,7 +639,7 @@ export function createTruck(renderer, tex) {
     sideL: Liv.trailerSide(renderer, { frontAt: 'left' }),
     sideR: Liv.trailerSide(renderer, { frontAt: 'right' }),
     rear: Liv.trailerRear(renderer),
-    roof: Liv.trailerRoof(renderer),
+    roof: Liv.trailerRoof(renderer, { span: ROOF_SPAN }),
     door: Liv.doorDecal(renderer),
     visor: Liv.visorDecal(renderer),
     badge: Liv.badge(renderer),

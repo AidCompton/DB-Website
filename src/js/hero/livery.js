@@ -11,6 +11,10 @@ const FONT = 'Montserrat, "Helvetica Neue", Arial, sans-serif';
 
 const logoPaths = () => Object.values(LOGO_PIECES).map((d) => new Path2D(d));
 
+// The blue block at the back of the trailer, as a fraction of its length.
+// The sides and the roof both use it, so the two blocks line up.
+export const REAR_BLOCK = 0.2;
+
 function makeCanvas(w, h) {
   const c = document.createElement('canvas');
   c.width = w;
@@ -99,8 +103,9 @@ export function trailerSide(renderer, { frontAt = 'left' } = {}) {
   ctx.fillStyle = WHITE;
   ctx.fillRect(0, 0, W, H);
 
-  // Rear block and a thin band along the bottom
-  const blockW = 820;
+  // Rear block (square: 20% of 13.6 m is the 2.72 m height) and a thin band
+  // along the bottom
+  const blockW = Math.round(W * REAR_BLOCK);
   ctx.fillStyle = BRAND_BLUE;
   ctx.fillRect(front ? W - blockW : 0, 0, blockW, H);
   ctx.fillRect(0, H - 40, W, 40);
@@ -110,7 +115,7 @@ export function trailerSide(renderer, { frontAt = 'left' } = {}) {
   drawLogo(ctx, bx - smallW / 2, H * 0.2, smallH, '#ffffff');
   text(ctx, 'driverib.com', bx, H * 0.2 + smallH + 120, 88, { weight: 600, color: '#ffffff', align: 'center' });
 
-  // Lockup: monogram + name, with the tagline underneath
+  // Lockup: monogram + name, with the brand line underneath
   const markH = H * 0.5;
   const markW = (LOGO_VIEWBOX[2] / LOGO_VIEWBOX[3]) * markH;
   const name = 'Driver Bureau';
@@ -124,8 +129,8 @@ export function trailerSide(renderer, { frontAt = 'left' } = {}) {
   drawLogo(ctx, x0, H * 0.2, markH);
   const textX = x0 + markW + gap;
   text(ctx, name, textX, H * 0.55, size, { color: BRAND_BLUE });
-  const tag = 'Proactively reduce driver risk. Because peace of mind matters.';
-  let ts = 64;
+  const tag = 'Because Peace of Mind Matters';
+  let ts = 84;
   const tw = measure(ctx, tag, ts, { weight: 500 });
   if (tw > nw) ts *= nw / tw;
   text(ctx, tag, textX + 6, H * 0.55 + ts * 1.9, ts, { weight: 500, color: INK });
@@ -140,8 +145,11 @@ export function trailerSide(renderer, { frontAt = 'left' } = {}) {
 
 // Roof, read from the drone shot. Canvas x runs front -> rear; the canvas top
 // faces the truck's right-hand side.
-export function trailerRoof(renderer) {
+// span: the share of the trailer's length the roof decal covers (it stops just
+// short of the rounded edges), so the blue block can match the sides exactly
+export function trailerRoof(renderer, { span = 1 } = {}) {
   const W = 4096, H = 768;
+  const blockX = (W * (1 - REAR_BLOCK - (1 - span) / 2)) / span;
   const c = makeCanvas(W, H);
   const ctx = c.getContext('2d');
   ctx.fillStyle = '#eef1f3';
@@ -160,13 +168,13 @@ export function trailerRoof(renderer) {
   const markH = H * 0.62;
   const mw = drawLogo(ctx, 260, (H - markH) / 2, markH);
   let size = 330;
-  const room = W - (260 + mw + 110) - 900;
+  const room = blockX - 260 - (260 + mw + 110);
   const w = measure(ctx, 'Driver Bureau', size);
   if (w > room) size *= room / w;
   text(ctx, 'Driver Bureau', 260 + mw + 110, H / 2 + size * 0.36, size, { color: BRAND_BLUE });
   ctx.fillStyle = BRAND_BLUE;
-  ctx.fillRect(W - 640, 0, 640, H);
-  text(ctx, 'driverib.com', W - 320, H / 2 + 34, 96, { weight: 600, color: '#ffffff', align: 'center' });
+  ctx.fillRect(blockX, 0, W - blockX, H);
+  text(ctx, 'driverib.com', (blockX + W) / 2, H / 2 + 34, 96, { weight: 600, color: '#ffffff', align: 'center' });
   return toTexture(c, renderer);
 }
 
