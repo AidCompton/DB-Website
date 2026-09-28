@@ -29,8 +29,8 @@ launch. Items marked **VERIFY** are the ones I'm least sure about.
 | --- | --- | --- |
 | Drivers cause 90% of accidents | Hero, The gap | About / Home |
 | 28% to 55% improvement in harsh braking and acceleration, depending on training logged | Hero, Results chart | Home |
-| VPJ: 45-minute assessment plus ongoing training | VPJ card, FAQ | FAQs |
-| Daily 10-minute training exercises | How it works, Evolve card, HUD, FAQ | Home |
+| VPJ and Evolve: 45-minute assessment plus ongoing training | Product cards, FAQ | FAQs (VPJ); client (Evolve, Sept 2026) |
+| Daily 10-minute training exercises | How it works, HUD, FAQ | Home |
 | Up to 55% reduction in high-risk driving incidents | Results, Case study | Case Studies |
 | 28% improvement in risk awareness and decision-making | Results, Case study | Case Studies |
 | Estimated 9.24% reduction in total crashes | Results, Case study | Case Studies |
@@ -94,10 +94,6 @@ launch. Items marked **VERIFY** are the ones I'm least sure about.
 11. **VPJ and Evolve copy.** Evolve is described as the same journey as VPJ
    for international markets, based on the "Evolve now first world VPJ"
    course folder. Check in particular:
-   - the **Evolve card's "10 min a day"** figure (the daily training
-     from the current site, assumed to apply to Evolve too);
-   - the FAQ **timing answer**, which gives VPJ's 45 minutes only, because
-     no Evolve duration was found;
    - the **"Evolve Guide"**, which isn't listed: Resources shows the VPJ Guide
      plus a link to all guides;
    - the **14% single-session figure**, which was removed from the Products
